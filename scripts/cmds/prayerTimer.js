@@ -7,19 +7,25 @@ module.exports.config = {
   name: "prayerTimer",
   version: "1.1",
   role: 0,
-  author: "Hridoy", // ক্রেডিট চেঞ্জ করলে ফাইল অফ হয়ে যাবে 
+  author: "Hridoy",
   description: "নামাজ টাইমে ভিডিও + Random Dua সহ মেসেজ যাবে",
   category: "Utility",
   countDown: 5,
 };
 
-// 🔐 Credit Protection
-if (module.exports.config.author !== "Hridoy") {
-  console.log("❌ Credit changed! File stopped.");
-  return;
+// ✅ GLOBAL LOCK (important)
+if (!global.prayerTimerState) {
+  global.prayerTimerState = {
+    lastSentKey: null,
+    intervalStarted: false
+  };
 }
 
 module.exports.onLoad = async function ({ api }) {
+
+  // 🔥 prevent multiple intervals
+  if (global.prayerTimerState.intervalStarted) return;
+  global.prayerTimerState.intervalStarted = true;
 
   const prayerTimes = {
     "05:00 AM": "🕌 ফজরের নামাজের সময় হয়েছে",
@@ -37,64 +43,58 @@ module.exports.onLoad = async function ({ api }) {
     "🤲 اللّهُمَّ ارْزُقْنِي حَلَالًا طَيِّبًا\nহে আল্লাহ, আমাকে হালাল রিযিক দান করুন"
   ];
 
-  const sentToday = {};
+  const cacheDir = path.join(__dirname, "cache");
+  const filePath = path.join(cacheDir, "azan.mp4");
 
-  console.log("🕌 Prayer Timer Loaded with Dua System...");
+  if (!fs.existsSync(cacheDir)) fs.mkdirSync(cacheDir);
+
+  if (!fs.existsSync(filePath)) {
+    const res = await axios({
+      url: "https://files.catbox.moe/gr8zqw.mp4",
+      method: "GET",
+      responseType: "stream"
+    });
+
+    await new Promise((resolve, reject) => {
+      const writer = fs.createWriteStream(filePath);
+      res.data.pipe(writer);
+      writer.on("finish", resolve);
+      writer.on("error", reject);
+    });
+  }
 
   const checkPrayer = async () => {
-    const now = moment().tz("Asia/Dhaka").format("hh:mm A");
 
-    if (prayerTimes[now] && !sentToday[now]) {
+    const now = moment().tz("Asia/Dhaka");
+    const timeKey = now.format("hh:mm A");
+    const dateKey = now.format("DD-MM-YYYY");
 
-      sentToday[now] = true;
+    const sendKey = `${dateKey}_${timeKey}`;
 
-      const timeNow = moment().tz("Asia/Dhaka").format("hh:mm A");
-      const dateNow = moment().tz("Asia/Dhaka").format("DD-MM-YYYY");
+    // 🔥 IMPORTANT: prevent duplicate send
+    if (prayerTimes[timeKey] && global.prayerTimerState.lastSentKey !== sendKey) {
+
+      global.prayerTimerState.lastSentKey = sendKey;
 
       const randomDua = duas[Math.floor(Math.random() * duas.length)];
 
       const finalMsg =
 `━━━━━━━━━━━━━━━━━━
-${prayerTimes[now]}
-🕒 সময়: ${timeNow}
-📅 তারিখ: ${dateNow}
+${prayerTimes[timeKey]}
+🕒 সময়: ${timeKey}
+📅 তারিখ: ${dateKey}
 ━━━━━━━━━━━━━━━━━━
 
 📿 দোয়া:
 ${randomDua}
 
 ◢◤━━━━━━━━━━━━━━━━◥◣
-🤖 ʙᴏᴛ ᴏᴡɴᴇʀ:-ᴋᴀᴋᴀsʜɪ
 🤲 সবাই নামাজ আদায় করুন
 ◥◣━━━━━━━━━━━━━━━━◢◤`;
 
       try {
         const allThreads = await api.getThreadList(100, null, ["INBOX"]);
         const groupThreads = allThreads.filter(t => t.isGroup);
-
-        const cacheDir = path.join(__dirname, "cache");
-        const filePath = path.join(cacheDir, "azan.mp4");
-
-        // 📁 cache folder create
-        if (!fs.existsSync(cacheDir)) {
-          fs.mkdirSync(cacheDir);
-        }
-
-        // 🎥 download if not exists
-        if (!fs.existsSync(filePath)) {
-          const res = await axios({
-            url: "https://files.catbox.moe/gr8zqw.mp4",
-            method: "GET",
-            responseType: "stream"
-          });
-
-          await new Promise((resolve, reject) => {
-            const writer = fs.createWriteStream(filePath);
-            res.data.pipe(writer);
-            writer.on("finish", resolve);
-            writer.on("error", reject);
-          });
-        }
 
         for (const thread of groupThreads) {
           await api.sendMessage({
@@ -103,20 +103,20 @@ ${randomDua}
           }, thread.threadID);
         }
 
-        console.log("✅ নামাজ + দোয়া + আজান পাঠানো হয়েছে");
+        console.log("✅ Prayer message sent once");
 
       } catch (err) {
-        console.error("❌ Prayer Timer Error:", err);
+        console.error("❌ Error:", err);
       }
     }
 
-    // 🔄 reset
-    if (moment().format("HH:mm") === "00:00") {
-      for (let key in sentToday) delete sentToday[key];
+    // 🔄 reset daily at midnight
+    if (now.format("HH:mm") === "00:00") {
+      global.prayerTimerState.lastSentKey = null;
     }
   };
 
-  setInterval(checkPrayer, 20000); // একটু বেশি accurate
+  setInterval(checkPrayer, 30000); // 30s safe interval
 };
 
 module.exports.onStart = () => {};
