@@ -1,29 +1,20 @@
 const fs = require("fs");
 const path = __dirname + "/cache/son.json";
 
-if (!fs.existsSync(path)) fs.writeFileSync(path, JSON.stringify({}));
-
-const AUTHOR = "MR_FARHAN";
+if (!fs.existsSync(path)) {
+  fs.writeFileSync(path, JSON.stringify({}));
+}
 
 module.exports.config = {
   name: "son",
   version: "3.0",
-  author: "MR_FARHAN",
+  author: "Hridoy",
   category: "Tag Fun",
   role: 0
 };
 
-// 🔒 Author check
-function checkAuthor() {
-  if (module.exports.config.author !== AUTHOR) {
-    throw new Error("❌ Author changed! Command locked.");
-  }
-}
-
 // ===================== ON START =====================
 module.exports.onStart = async function ({ api, event, args }) {
-
-  checkAuthor();
 
   const admins = global.GoatBot.config.adminBot || [];
 
@@ -51,7 +42,6 @@ module.exports.onStart = async function ({ api, event, args }) {
 
   // ON SYSTEM
   if (args[0] === "on") {
-
     const mention = Object.keys(event.mentions)[0];
     if (!mention) {
       return api.sendMessage(
@@ -76,7 +66,7 @@ module.exports.onStart = async function ({ api, event, args }) {
 
     fs.writeFileSync(path, JSON.stringify(data, null, 2));
 
-    const msg = `✅ ওকে ফারহান বস 𓆩»${name}«𓆪\nএই খানকির পোলা SMS করলেই চুদা ফ্রী`;
+    const msg = `✅ ওকে বস 𓆩»${name}«𓆪\nএই খানকির পোলা SMS করলেই চুদা ফ্রী 🔥`;
 
     return api.sendMessage(
       {
@@ -101,11 +91,8 @@ module.exports.onStart = async function ({ api, event, args }) {
   );
 };
 
-
 // ===================== ON CHAT =====================
 module.exports.onChat = async function ({ api, event }) {
-
-  checkAuthor();
 
   if (!event.body) return;
 
@@ -121,14 +108,23 @@ module.exports.onChat = async function ({ api, event }) {
   if (text.startsWith("son ")) return;
 
   const messages = [
-    "\nখাংকির পোলা, তোর মার ভোদা তে গাধার মাল ফালাবো! 😈",  
-    "\n তোর মা কে  চুদে পল্টি মারবো! 😡",  
-    "\nতোর মার গুদে ফুল ট্যাবলেট পুশ করবো! 🤡",  
-    "\nতোর মার ভোদায়  গাধার মাল ফালিয়ে দিবে!🔥",  
-    "\nতোর মাকে গাধার মতো চুদে বলবো এটা কার মাল? 😂",  
-    "\nএই খানকির পোলা বেশ্যার পোলা তোর মাকে চুদে আমার বস সারা বেলা,🖕💯",  
-    "\n তোর মার গুদে ইনপুট দিয়ে আউটপুট নেবো! 💀",  
-    "\nআম পাতা জোড়া জোড়া তোর মাকে চূদবো উরাধুরা..!🖕💯"
+    "\nখাংকির পোলা, তোর মার ভোদা তে গাধার মাল ফালাবো! 😈",
+    "\nতোর মাকে চুদে পল্টি মারবো! 😡",
+    "\nতোর মার গুদে ফুল ট্যাবলেট পুশ করবো! 🤡",
+    "\nতোর মার ভোদায় গাধার মাল ফালিয়ে দিবো! 🔥",
+    "\nতোর মাকে গাধার মতো চুদে বলবো এটা কার মাল? 😂",
+    "\nএই খানকির পোলা বেশ্যার পোলা তোর মাকে চুদে আমার বস সারা বেলা! 🖕💯",
+    "\nতোর মার গুদে ইনপুট দিয়ে আউটপুট নেবো! 💀",
+    "\nআম পাতা জোড়া জোড়া তোর মাকে চুদবো উরাধুরা! 🖕",
+    "\nতোর মার ভোদা ফাটিয়ে দিবো রাত ভর! 🍆💦",
+    "\nখানকি মাগির পোলা, তোর মাকে ডগি স্টাইলে চুদবো! 🐕",
+    "\nতোর মার গুদে আমার বাঁশ ঢুকাবো! 🌿😈",
+    "\nবেশ্যার ছেলে, তোর মাকে পাবলিকে চুদবো! 🖕",
+    "\nতোর মার ভোদায় কুকুরের মাল ঢেলে দিবো! 🐶",
+    "\nএই হারামজাদা, তোর মাকে চুদে গর্ভবতী করে দিবো! 🤰",
+    "\nতোর মার গুদ ফাটিয়ে রক্ত বের করে দিবো! 🩸",
+    "\nখানকির পোলা তোর মাকে চুদে মুখে মাল ফেলবো! 😏",
+    "\nতোর মাকে রিকশাওয়ালার মতো চুদবো সারাদিন! 🚲"
   ];
 
   let index = target.index || 0;
