@@ -11,7 +11,7 @@ module.exports = {
         countDown: 10,
         role: 0,
         description: "Propose someone with gender-based images",
-        category: "love",
+        category: "Love",
         guide: { en: "{p}{n} @mention | Reply | [uid]" }
     },
 
