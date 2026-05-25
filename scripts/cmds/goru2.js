@@ -10,7 +10,7 @@ module.exports = {
     author: "FARHAN-KHAN",
     countDown: 5,
     role: 0,
-    category: "fun",
+    category: "Tag Fun",
     shortDescription: { en: "Funny Cow edit with secure metadata and name mention." },
     guide: { en: "{pn} @mention or reply" }
   },
