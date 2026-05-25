@@ -1,80 +1,121 @@
-const axios = require('axios');
-const jimp = require("jimp");
-const fs = require("fs");
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
-    config: {
-        name: "married",
-        aliases: ["marry"],
-        version: "1.0",
-        author: "Farhan-Khan",
-        countDown: 5,
-        role: 0,
-        shortDescription: "get a wife",
-        longDescription: "",
-        category: "Love",
-        guide: "{pn}"
-    },
-
-    onStart: async function ({ message, event, args }) {
-
-        // 🔒 AUTHOR NAME LOCK (Don't change)
-        if (this.config.author !== "Farhan-Khan") {
-            return message.reply("⚠️ Author name changed! Command will not run.");
-        }
-
-        const mention = Object.keys(event.mentions);
-
-        if (mention.length == 0) {
-            return message.reply("Please mention someone");
-        } 
-        else if (mention.length == 1) {
-            const one = event.senderID;
-            const two = mention[0];
-
-            bal(one, two).then(ptth => {
-                message.reply({
-                    body: "「 i love you babe🥰❤️ 」",
-                    attachment: fs.createReadStream(ptth)
-                });
-            });
-
-        } 
-        else {
-            const one = mention[1];
-            const two = mention[0];
-
-            bal(one, two).then(ptth => {
-                message.reply({
-                    body: "「 i love you babe🥰❤️ 」",
-                    attachment: fs.createReadStream(ptth)
-                });
-            });
-        }
+  config: {
+    name: "married",
+    aliases: [],
+    version: "2.0",
+    author: "Hridoy",
+    countDown: 5,
+    role: 0,
+    shortDescription: "Generate married banner",
+    longDescription: "Generate a couple banner image using sender and target Facebook UID",
+    category: "Love",
+    guide: {
+      en: "{pn} @mention/reply"
     }
+  },
+
+  onStart: async function ({ api, event }) {
+    const { threadID, messageID, mentions, messageReply, senderID } = event;
+
+    let targetID = null;
+
+    // Mention detect
+    if (mentions && Object.keys(mentions).length > 0) {
+      targetID = Object.keys(mentions)[0];
+    }
+
+    // Reply detect
+    else if (messageReply && messageReply.senderID) {
+      targetID = messageReply.senderID;
+    }
+
+    // No target
+    if (!targetID) {
+      return api.sendMessage(
+        "Please reply or mention someone......",
+        threadID,
+        messageID
+      );
+    }
+
+    try {
+      // API list fetch
+      const apiList = await axios.get(
+        "https://raw.githubusercontent.com/shahadat-sahu/SAHU-API/refs/heads/main/SAHU-API.json"
+      );
+
+      const AVATAR_CANVAS_API = apiList.data.AvatarCanvas;
+
+      // Generate image
+      const res = await axios.post(
+        `${AVATAR_CANVAS_API}/api`,
+        {
+          cmd: "married",
+          senderID,
+          targetID
+        },
+        {
+          responseType: "arraybuffer",
+          timeout: 30000
+        }
+      );
+
+      // Cache folder create
+      const cacheDir = path.join(__dirname, "cache");
+
+      if (!fs.existsSync(cacheDir)) {
+        fs.mkdirSync(cacheDir, { recursive: true });
+      }
+
+      const imgPath = path.join(
+        cacheDir,
+        `married_${senderID}_${targetID}.png`
+      );
+
+      fs.writeFileSync(imgPath, res.data);
+
+      // Random captions
+      const captions = [
+        "💟ღــ💘তোমার ভালোবাসা, আমার জীবনের সবথেকে বড় উপহার।💘ღــ💟",
+        "তোমার চোখে তাকালেই আমার যে একটা পৃথিবীর আছে সেটা আমি সবকিছু ভুলে যাই!💚❤️‍🩹💞",
+        "তুমি আমার জীবনের সেই গল্প, যেই গল্প আমি কোন দিন শেষ করতে চাই না!🥰😘🌻",
+        "I am so lucky person! তোমার মতো একজন ভালোবাসায়ী মানুষ আমার জীবন সঙ্গী হিসাবে পেয়ে!❤️‍🩹💞🌺",
+        "I feel complete in my life, যখন ভাবি তোমার মতো একটা লক্ষ্মী মানুষ আমার জীবন সঙ্গী!💝",
+        "তোমাতে শুরু তোমাতেই শেষ, তুমি না থাকলে আমাদের গল্প এখানেই শেষ!🌺",
+        "আমি ছিলাম, আমি আছি আমি থাকবো, শুধু তোমারই জন্য!💞",
+        "❥💙══ღ══❥তোমাকে জড়িয়ে ধরার সুখ এই পৃথিবীর কোনো কিছু দিয়ে কেনা যায় না প্রিয়তমা।══ღ══❥💙❥",
+        "🌻•━এতো ভালোবাসি এতো যারে চাই…মনে হয় নাতো সে যে কাছে নাই!🌻•━",
+        "🌼══ღ══❥চলার পথে আমার হাতে তোমার হাতটা গুঁজে দিও, হাঁটতে গিয়ে হোঁচট খেলে আমায় তুমি সামলে নিও।🌼══ღ══❥",
+        "💠✦💟✦💠আমার মনে হয় আমার মনের মধ্যে একটা নরম জমিটায়, শুধু তোমার বসবাস।💠✦💟✦💠",
+        "আমার জীবনে সুখ-শান্তি লাগবে না, আমি শুধু তোমাকে চাই!🌼"
+      ];
+
+      const caption =
+        captions[Math.floor(Math.random() * captions.length)];
+
+      return api.sendMessage(
+        {
+          body: caption,
+          attachment: fs.createReadStream(imgPath)
+        },
+        threadID,
+        () => {
+          if (fs.existsSync(imgPath)) fs.unlinkSync(imgPath);
+        },
+        messageID
+      );
+    } catch (error) {
+      console.error(error);
+
+      return api.sendMessage(
+        "API Error Call Boss Kakashi",
+        threadID,
+        messageID
+      );
+    }
+  }
 };
-
-async function bal(one, two) {
-
-    let avone = await jimp.read(
-        `https://graph.facebook.com/${one}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`
-    );
-    avone.circle();
-
-    let avtwo = await jimp.read(
-        `https://graph.facebook.com/${two}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`
-    );
-    avtwo.circle();
-
-    let pth = "abcd.png";
-
-    let img = await jimp.read("https://i.imgur.com/qyn1vO1.jpg");
-
-    img.resize(432, 280)
-        .composite(avone.resize(60, 60), 189, 15)
-        .composite(avtwo.resize(60, 60), 122, 25);
-
-    await img.writeAsync(pth);
-
-    return pth;
-}
