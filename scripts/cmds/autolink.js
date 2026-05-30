@@ -1,83 +1,91 @@
-const axios = require("axios");
-const fs = require("fs");
+const fs = require("fs-extra");
 const path = require("path");
+const { downloadVideo } = require("sagor-video-downloader");
 
 module.exports = {
-    config: {
-        name: "autolink",
-        version: "1.3",
-        author: "MOHAMMAD AKASH",
-        role: 0,
-        shortDescription: "Auto-download videos via Akash-video-downloader API",
-        category: "Media",
-        countDown: 3,
-    },
+	config: {
+		name: "autolink",
+		version: "2.0.0",
+		author: "Hridoy X Akash",
+		role: 0,
+		countDown: 3,
+		shortDescription: "Auto Download Videos",
+		category: "Media"
+	},
 
-    onStart: async function({ api, event }) {
-        // Required by Goat Bot v2
-    },
+	onStart: async function () {},
 
-    onChat: async function({ api, event }) {
-        const threadID = event.threadID;
-        const messageID = event.messageID;
-        const message = event.body || "";
+	onChat: async function ({ api, event }) {
+		try {
+			const { body, threadID, messageID } = event;
 
-        const linkMatches = message.match(/(https?:\/\/[^\s]+)/g);
-        if (!linkMatches || linkMatches.length === 0) return;
+			if (!body) return;
 
-        const uniqueLinks = [...new Set(linkMatches)];
+			const links = body.match(/(https?:\/\/[^\s]+)/gi);
+			if (!links) return;
 
-        api.setMessageReaction("⏳", messageID, () => {}, true);
+			const uniqueLinks = [...new Set(links)];
 
-        let successCount = 0;
-        let failCount = 0;
+			api.setMessageReaction("⏳", messageID, () => {}, true);
 
-        for (const url of uniqueLinks) {
-            try {
-                const response = await axios.post(
-                    "https://akash-video-downloader.onrender.com/download",
-                    { url },
-                    { responseType: "stream" }
-                );
+			let success = 0;
+			let failed = 0;
 
-                const tempFile = path.join(__dirname, `temp_${Date.now()}.mp4`);
-                const writer = fs.createWriteStream(tempFile);
-                response.data.pipe(writer);
+			for (const url of uniqueLinks) {
+				try {
+					const data = await downloadVideo(url);
 
-                await new Promise((resolve, reject) => {
-                    writer.on("finish", resolve);
-                    writer.on("error", reject);
-                });
+					if (!data || !data.filePath)
+						throw new Error("Download Failed");
 
-                const stats = fs.statSync(tempFile);
-                const fileSizeInMB = stats.size / (1024 * 1024);
+					const videoPath = data.filePath;
 
-                if (fileSizeInMB > 25) {
-                    fs.unlinkSync(tempFile);
-                    failCount++;
-                    continue;
-                }
+					if (!fs.existsSync(videoPath))
+						throw new Error("File Missing");
 
-                await api.sendMessage(
-                    {
-                        body: `📥 Video downloaded successfully\n━━━━━━━━━━━━━━━`,
-                        attachment: fs.createReadStream(tempFile)
-                    },
-                    threadID,
-                    () => fs.unlinkSync(tempFile)
-                );
+					const stats = fs.statSync(videoPath);
+					const sizeMB = stats.size / 1024 / 1024;
 
-                successCount++;
+					if (sizeMB > 25) {
+						fs.unlinkSync(videoPath);
+						failed++;
+						continue;
+					}
 
-            } catch (err) {
-                failCount++;
-            }
-        }
+					const info =
+`Here's Your Video Baby >😘`;
 
-        const finalReaction =
-            successCount > 0 && failCount === 0 ? "✅" :
-            successCount > 0 ? "⚠️" : "❌";
+					await api.sendMessage(
+						{
+							body: info,
+							attachment: fs.createReadStream(videoPath)
+						},
+						threadID,
+						() => {
+							if (fs.existsSync(videoPath))
+								fs.unlinkSync(videoPath);
+						}
+					);
 
-        api.setMessageReaction(finalReaction, messageID, () => {}, true);
-    }
+					success++;
+
+				} catch (err) {
+					console.log("[AUTOLINK ERROR]", err);
+					failed++;
+				}
+			}
+
+			let reaction = "❌";
+
+			if (success > 0 && failed === 0)
+				reaction = "✅";
+			else if (success > 0 && failed > 0)
+				reaction = "⚠️";
+
+			api.setMessageReaction(reaction, messageID, () => {}, true);
+
+		} catch (e) {
+			console.log(e);
+		}
+	}
 };
