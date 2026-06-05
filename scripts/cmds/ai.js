@@ -1,54 +1,94 @@
 const axios = require("axios");
 
+const baseApiUrl = async () => {
+        const base = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
+        return base.data.mahmud;
+};
+
 module.exports = {
-  config: {
-    name: "ai",
-    aliases: ["chat", ],
-    version: "1.0",
-    author: "Hridoy",
-    countDown: 5,
-    role: 0,
-    shortDescription: "AI chat",
-    longDescription: "Chat with AI using OpenRouter",
-    category: "AI",
-    guide: {
-      en: "{pn}ai <your question>"
-    }
-  },
-
-  onStart: async function ({ api, event, args }) {
-    try {
-      const query = args.join(" ");
-      if (!query) {
-        return api.sendMessage("❌ | Ask something...", event.threadID);
-      }
-
-      const res = await axios.post(
-        "https://openrouter.ai/api/v1/chat/completions",
-        {
-          model: "openai/gpt-3.5-turbo", // free model
-          messages: [
-            {
-              role: "user",
-              content: query
-            }
-          ]
+        config: {
+                name: "ai",
+                version: "1.7",
+                author: "MahMUD",
+                countDown: 5,
+                role: 0,
+                description: {
+                        bn: "যেকোনো বিষয়ে এআই সহকারীর সাথে চ্যাট করুন",
+                        en: "Chat with an AI assistant on any topic",
+                        vi: "Trò chuyện với trợ lý AI về bất kỳ chủ đề nào"
+                },
+                category: "AI",
+                guide: {
+                        bn: '   {pn} <প্রশ্ন>: আপনার প্রশ্নটি লিখুন',
+                        en: '   {pn} <question>: Type your question',
+                        vi: '   {pn} <câu hỏi>: Nhập câu hỏi của bạn'
+                }
         },
-        {
-          headers: {
-            "Authorization": "Bearer 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",
-            "Content-Type": "application/json"
-          }
+
+        langs: {
+                bn: {
+                        noInput: "× বেবি, কিছু তো জিজ্ঞাসা করো!",
+                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact Hridoy"
+                },
+                en: {
+                        noInput: "× Baby, please ask something!",
+                        error: "× API error: %1. Contact Hridoy for help"
+                },
+                vi: {
+                        noInput: "× Cưng ơi, hãy hỏi điều gì đó!",
+                        error: "× Lỗi: %1. Liên hệ Hridoy để hỗ tr"
+                }
+        },
+
+        onStart: async function ({ api, event, args, message, getLang, commandName }) {
+                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
+                if (this.config.author !== authorName) {
+                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
+                }
+
+                const prompt = args.join(" ");
+                if (!prompt) return message.reply(getLang("noInput"));
+
+                return module.exports.handleAI({ api, event, prompt, getLang, commandName });
+        },
+
+        onReply: async function ({ api, event, Reply, getLang, commandName }) {
+                if (Reply.author !== event.senderID) return;
+                const prompt = event.body;
+                if (!prompt) return;
+
+                return module.exports.handleAI({ api, event, prompt, getLang, commandName });
+        },
+
+        handleAI: async function ({ api, event, prompt, getLang, commandName }) {
+                try {
+                        api.setMessageReaction("⏳", event.messageID, () => {}, true);
+                        
+                        const baseUrl = await baseApiUrl();                   
+                        const response = await axios.get(`${baseUrl}/api/ai`, {
+                                params: {
+                                        prompt: prompt,
+                                        ai: "ai"
+                                }
+                        });
+
+                        const replyText = response.data.response || "No response received.";
+                        api.setMessageReaction("✅", event.messageID, () => {}, true);
+
+                        return api.sendMessage(replyText, event.threadID, (error, info) => {
+                                if (!error) {
+                                        global.GoatBot.onReply.set(info.messageID, {
+                                                commandName,
+                                                author: event.senderID
+                                        });
+                                }
+                        }, event.messageID);
+
+                } catch (err) {
+                        console.error("AI Error:", err);
+                        api.setMessageReaction("❌", event.messageID, () => {}, true);
+                        const errorMsg = err.response?.data?.error || err.message;
+                        return api.sendMessage(getLang("error", errorMsg), event.threadID, event.messageID);
+                }
         }
-      );
-
-      const reply = res.data.choices[0].message.content;
-
-      return api.sendMessage(`🤖 AI Reply:\n\n${reply}`, event.threadID);
-
-    } catch (err) {
-      console.error(err.response?.data || err.message);
-      return api.sendMessage("❌ | AI Error", event.threadID);
-    }
-  }
 };

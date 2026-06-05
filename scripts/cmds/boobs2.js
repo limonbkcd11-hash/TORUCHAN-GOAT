@@ -2,16 +2,16 @@ const axios = require("axios");
 
 module.exports = {
   config: {
-    name: "blowjob",
+    name: "boobs",
     version: "1.0.0",
     author: "Hridoy",
     countDown: 5,
     role: 2,
     shortDescription: {
-      en: "Random Blowjob / Oral Image"
+      en: "Random Milf Image"
     },
     longDescription: {
-      en: "Send random NSFW oral/blowjob image from waifu.im"
+      en: "Send random milf image from waifu.im"
     },
     category: "NSFW",
     guide: {
@@ -21,7 +21,8 @@ module.exports = {
 
   onStart: async function ({ message }) {
     try {
-      const apiUrl = "https://api.waifu.im/images?IncludedTags=oral&IsNsfw=True&PageSize=1";
+      const apiUrl =
+        "https://api.waifu.im/images?IncludedTags=milf&IsNsfw=All&OrderBy=Random";
 
       const res = await axios.get(apiUrl);
 
@@ -32,7 +33,7 @@ module.exports = {
       const imageUrl = res.data.items[0].url;
 
       return message.reply({
-        body: "🍒 Random Oral Image",
+        body: "🍒 Random Milf",
         attachment: await global.utils.getStreamFromURL(imageUrl)
       });
 

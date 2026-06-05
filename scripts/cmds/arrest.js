@@ -1,49 +1,96 @@
-const axios = require('axios');
-const jimp = require("jimp");
-const fs = require("fs")
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
+const { createCanvas, loadImage } = require("canvas");
 
 module.exports = {
 	config: {
 		name: "arrest",
-		aliases: ["arrest"],
+		aliases: ["jail"],
 		version: "1.0",
-		author: "milan-says",
+		author: "Hridoy",
 		countDown: 5,
 		role: 0,
-		shortDescription: "arret the rapist",
-		longDescription: "",
+		shortDescription: "Arrest someone",
+		longDescription: "Create arrest image using mention or reply",
 		category: "Tag Fun",
-		guide:  {
-			vi: "{pn} [@tag]",
-			en: "{pn} [@tag]"
+		guide: {
+			en: "{pn} @mention or reply"
 		}
 	},
 
-	onStart: async function ({ message, args,api , event, user }) {
-        const mention = Object.keys(event.mentions);
-        if (mention.length == 0) return message.reply("please mention someone");
-        else if (mention.length == 1) {
-            const one = event.senderID, two = mention[0];
-            bal(one, two).then(ptth => { message.reply({ body: "You are under arrest", attachment: fs.createReadStream(ptth) }) })
-        } else {
-            const one = mention[1], two = mention[0];
-            bal(one, two).then(ptth => { message.reply({ body: "You are under arrest", attachment: fs.createReadStream(ptth) }) })
-        }
-    }
+	onStart: async function ({ event, message }) {
+		try {
+			let targetID;
 
+			if (Object.keys(event.mentions || {}).length > 0)
+				targetID = Object.keys(event.mentions)[0];
+			else if (event.messageReply)
+				targetID = event.messageReply.senderID;
+			else
+				return message.reply("❌ | Mention someone or reply to a message.");
 
+			const imgPath = await createArrestImage(event.senderID, targetID);
+
+			await message.reply({
+				body: "🚔 | You are under arrest!",
+				attachment: fs.createReadStream(imgPath)
+			});
+
+			setTimeout(() => {
+				if (fs.existsSync(imgPath))
+					fs.unlinkSync(imgPath);
+			}, 5000);
+
+		} catch (err) {
+			console.error(err);
+			message.reply(`❌ | ${err.message}`);
+		}
+	}
 };
 
-async function bal(one, two) {
+async function createArrestImage(user1, user2) {
+	const cacheDir = path.join(__dirname, "cache");
+	await fs.ensureDir(cacheDir);
 
-   let avone = await jimp.read(`https://graph.facebook.com/${one}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)
-    avone.circle()
-    let avtwo = await jimp.read(`https://graph.facebook.com/${two}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`)
-    avtwo.circle()
-    let pth = "fak.png"
-    let img = await jimp.read("https://i.imgur.com/ep1gG3r.png")
-    img.resize(500, 500).composite(avone.resize(100, 100), 375, 9).composite(avtwo.resize(100, 100), 160, 92);
+	const output = path.join(cacheDir, `arrest_${Date.now()}.png`);
 
-    await img.writeAsync(pth)
-    return pth
-              }
+	const canvas = createCanvas(500, 500);
+	const ctx = canvas.getContext("2d");
+
+	const bg = await loadImage("https://i.imgur.com/ep1gG3r.png");
+
+	const av1 = await loadImage(
+		`https://graph.facebook.com/${user1}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`
+	);
+
+	const av2 = await loadImage(
+		`https://graph.facebook.com/${user2}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`
+	);
+
+	ctx.drawImage(bg, 0, 0, 500, 500);
+
+	drawCircleImage(ctx, av1, 375, 9, 100);
+	drawCircleImage(ctx, av2, 160, 92, 100);
+
+	const buffer = canvas.toBuffer("image/png");
+	fs.writeFileSync(output, buffer);
+
+	return output;
+}
+
+function drawCircleImage(ctx, img, x, y, size) {
+	ctx.save();
+	ctx.beginPath();
+	ctx.arc(
+		x + size / 2,
+		y + size / 2,
+		size / 2,
+		0,
+		Math.PI * 2
+	);
+	ctx.closePath();
+	ctx.clip();
+	ctx.drawImage(img, x, y, size, size);
+	ctx.restore();
+}

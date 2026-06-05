@@ -1,52 +1,86 @@
-const axios = require('axios');
-const jimp = require("jimp");
-const fs = require("fs");
+const { createCanvas, loadImage } = require("canvas");
+const axios = require("axios");
+const fs = require("fs-extra");
+const path = require("path");
 
 module.exports = {
-  config: {
-    name: "condom",
-    aliases: ["condom"],
-    version: "1.0",
-    author: "Samir",
-    countDown: 5,
-    role: 0,
-    shortdescription: "Make fun of your friends",
-    longDescription: "Make fun of your friends using crazy condom fails",
-    category: "Tag Fun",
-    guide: ""
-  },
+	config: {
+		name: "condom",
+		version: "2.0",
+		author: "Hridoy",
+		countDown: 5,
+		role: 0,
+		shortDescription: "Funny condom meme",
+		category: "Tag Fun",
+		guide: {
+			en: "{pn} @mention OR reply"
+		}
+	},
 
-  onStart: async function ({ message, event, args }) {
-    const mention = Object.keys(event.mentions);
-    if (mention.length == 0) {
-      message.reply("You must select tag a person");
-      return;
-    }
+	onStart: async function ({ event, message }) {
+		try {
+			let uid;
 
-    let one;
-    if (mention.length == 1) {
-      one = mention[0];
-    } else {
-      one = mention[0];
-    }
+			if (Object.keys(event.mentions || {}).length > 0) {
+				uid = Object.keys(event.mentions)[0];
+			} else if (event.messageReply) {
+				uid = event.messageReply.senderID;
+			} else {
+				return message.reply("❌ | Mention or reply someone.");
+			}
 
-    try {
-      const imagePath = await bal(one);
-      await message.reply({
-        body: "Ops Crazy Condom Fails😆",
-        attachment: fs.createReadStream(imagePath)
-      });
-    } catch (error) {
-      console.error("Error while running command:", error);
-      await message.reply("an error occurred");
-    }
-  }
+			const file = await buildImage(uid);
+
+			return message.reply({
+				body: "😂 Ops Crazy Condom Fail!",
+				attachment: fs.createReadStream(file)
+			});
+
+		} catch (err) {
+			console.log("ERROR:", err);
+			return message.reply("❌ Failed to create image.");
+		}
+	}
 };
-async function bal(one) {
-  const avatarone = await jimp.read(`https://graph.facebook.com/${one}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`);
-  const image = await jimp.read("https://i.imgur.com/cLEixM0.jpg");
-  image.resize(512, 512).composite(avatarone.resize(263, 263), 256, 258);
-  const imagePath = "condom.png";
-  await image.writeAsync(imagePath);
-  return imagePath;
+
+async function buildImage(uid) {
+	const cache = path.join(__dirname, "cache");
+	await fs.ensureDir(cache);
+
+	const output = path.join(cache, `condom_${uid}_${Date.now()}.png`);
+
+	// avatar download
+	const avatarURL = `https://graph.facebook.com/${uid}/picture?width=512&height=512&access_token=6628568379%7Cc1e620fa708a1d5696fb991c1bde5662`;
+	const avatarRes = await axios.get(avatarURL, { responseType: "arraybuffer" });
+
+	const avatarPath = path.join(cache, `av_${uid}.png`);
+	fs.writeFileSync(avatarPath, avatarRes.data);
+
+	// canvas setup
+	const canvas = createCanvas(512, 512);
+	const ctx = canvas.getContext("2d");
+
+	// background
+	const bg = await loadImage("https://i.imgur.com/cLEixM0.jpg");
+
+	// avatar
+	const avatar = await loadImage(avatarPath);
+
+	ctx.drawImage(bg, 0, 0, 512, 512);
+
+	// circle avatar
+	ctx.save();
+	ctx.beginPath();
+	ctx.arc(256 + 131.5, 258 + 131.5, 131.5, 0, Math.PI * 2);
+	ctx.closePath();
+	ctx.clip();
+	ctx.drawImage(avatar, 256, 258, 263, 263);
+	ctx.restore();
+
+	const buffer = canvas.toBuffer("image/png");
+	fs.writeFileSync(output, buffer);
+
+	fs.unlinkSync(avatarPath);
+
+	return output;
 }

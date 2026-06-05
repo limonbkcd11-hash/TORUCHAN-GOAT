@@ -1,12 +1,16 @@
 const axios = require("axios");
 const fs = require("fs-extra");
 const path = require("path");
+const { pipeline } = require("stream");
+const { promisify } = require("util");
+
+const streamPipeline = promisify(pipeline);
 
 module.exports = {
   config: {
     name: "catpic",
-    version: "1.1.0",
-    author: "Hridoy",
+    version: "1.1.2",
+    author: "Hrudoy",
     role: 0,
     shortDescription: "Random cat image 😺",
     category: "Image",
@@ -15,30 +19,58 @@ module.exports = {
   },
 
   onStart: async function ({ api, event }) {
+    const cacheDir = path.join(__dirname, "cache");
+    const cachePath = path.join(cacheDir, `cat_${Date.now()}.jpg`);
+
     try {
-      const res = await axios.get("https://api.thecatapi.com/v1/images/search");
-      if (!res.data || !res.data[0] || !res.data[0].url)
-        return api.sendMessage("😿 Cat pic load hoilo na...", event.threadID, event.messageID);
+      await fs.ensureDir(cacheDir);
 
-      const imgUrl = res.data[0].url;
-      const cachePath = path.join(__dirname, "cache", `cat_${Date.now()}.jpg`);
-      await fs.ensureDir(path.dirname(cachePath));
+      // Get cat image URL
+      const res = await axios.get(
+        "https://api.thecatapi.com/v1/images/search",
+        { timeout: 15000 }
+      );
 
-      const response = await axios({ url: imgUrl, method: "GET", responseType: "stream" });
-      const writer = fs.createWriteStream(cachePath);
-      response.data.pipe(writer);
+      const imgUrl = res?.data?.[0]?.url;
+      if (!imgUrl) {
+        return api.sendMessage(
+          "😿 Cat image load hoilo na...",
+          event.threadID,
+          event.messageID
+        );
+      }
 
-      writer.on("finish", () => {
-        api.sendMessage({ body: "😺 Random Cat Pic!", attachment: fs.createReadStream(cachePath) }, event.threadID, () => {
-          fs.unlinkSync(cachePath);
-        }, event.messageID);
+      // Download image as stream
+      const response = await axios({
+        url: imgUrl,
+        method: "GET",
+        responseType: "stream",
+        timeout: 20000
       });
 
-      writer.on("error", () => api.sendMessage("❌ Cat pic download failed", event.threadID, event.messageID));
+      await streamPipeline(
+        response.data,
+        fs.createWriteStream(cachePath)
+      );
+
+      // Send image
+      return api.sendMessage(
+        {
+          body: "😺 Random Cat Pic!",
+          attachment: fs.createReadStream(cachePath)
+        },
+        event.threadID,
+        () => fs.unlink(cachePath).catch(() => {}),
+        event.messageID
+      );
 
     } catch (err) {
-      console.error(err);
-      api.sendMessage("⚠️ Cat pic fetch korte pari nai... abar try koro 😅", event.threadID, event.messageID);
+      console.error("catpic error:", err);
+      return api.sendMessage(
+        "⚠️ Cat pic fetch failed... abar try koro 😅",
+        event.threadID,
+        event.messageID
+      );
     }
   }
 };
