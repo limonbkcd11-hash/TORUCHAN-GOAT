@@ -3,12 +3,11 @@ const axios = require("axios");
 module.exports = {
   config: {
     name: "gf",
-    version: "1.0.0",
+    version: "1.0.2",
     author: "Hridoy",
     role: 0,
     shortDescription: "Random GF image/video",
     category: "Image",
-    guide: "{pn}",
     cooldown: 5
   },
 
@@ -432,22 +431,34 @@ module.exports = {
 "https://i.postimg.cc/DwkCMVwK/c7e59b1436a3fafda3b21.jpg",
 "https://i.postimg.cc/6QzYqyL9/ccafc5b26a05a65bff1410.jpg",
 "https://i.postimg.cc/SsvdL3v3/d34e0d83a3346f6a3625107.jpg"
-    ];
+   ];
+
+    const url = links[Math.floor(Math.random() * links.length)];
+    const ext = url.split(".").pop().split("?")[0].toLowerCase();
 
     try {
-      const randomLink = links[Math.floor(Math.random() * links.length)];
+      const res = await axios.get(url, { responseType: "stream" });
 
-      // 🔥 direct stream (image + video both support)
-      const stream = await global.utils.getStreamFromURL(randomLink);
+      let type = "image";
+
+      // video detect (future proof)
+      if (["mp4", "mov", "gif"].includes(ext)) {
+        type = "video";
+      }
 
       return api.sendMessage({
         body: "💖 Your GF is here 😘",
-        attachment: stream
+        attachment: res.data,
+        attachmentType: type   // 🔥 THIS FIXES YOUR ISSUE
       }, event.threadID, event.messageID);
 
     } catch (err) {
       console.error(err);
-      return api.sendMessage("⚠️ GF aste aste chole ashtese... abar try koro 😅", event.threadID, event.messageID);
+      return api.sendMessage(
+        "⚠️ Load fail, try again 😅",
+        event.threadID,
+        event.messageID
+      );
     }
   }
 };

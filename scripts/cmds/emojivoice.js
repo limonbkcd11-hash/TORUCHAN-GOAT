@@ -8,7 +8,7 @@ module.exports = {
   config: {
     name: "emojivoice",
     version: "2.0.3",
-    author: "MOHAMMAD AKASH",
+    author: "Hridoy",
     countDown: 5,
     role: 0,
     shortDescription: "Sends a cute girl's voice when an emoji is used 😍",

@@ -9,7 +9,7 @@ const baseApiUrl = async () => {
 
 module.exports = {
         config: {
-                name: "elephant",
+                name: "goru",
                 version: "1.7",
                 author: "MahMUD",
                 role: 0,
@@ -24,19 +24,19 @@ module.exports = {
 
         langs: {
                 bn: {
-                        noTarget: "• বেবি, কাকে elephant বানাবে? মেনশন, রিপ্লাই বা UID দাও",
+                        noTarget: "• বেবি, কাকে goru বানাবে? মেনশন, রিপ্লাই বা UID দাও",
                         error: "❌ An error occurred: contact MahMUD %1",
-                        success: "Effect elephant successful"
+                        success: "Effect cow successful"
                 },
                 en: {
                         noTarget: "• Baby, mention, reply, or provide UID of the target",
                         error: "❌ An error occurred: contact MahMUD %1",
-                        success: "Effect elephant successful"
+                        success: "এইযে মামা বিদেশি গরু 🐮"
                 },
                 vi: {
                         noTarget: "• Cưng ơi, hãy đề cập, phản hồi hoặc cung cấp UID",
                         error: "❌ An error occurred: contact MahMUD %1",
-                        success: "Hiệu ứng elephant thành công"
+                        success: "Hiệu ứng cow thành công"
                 }
         },
 
@@ -59,7 +59,7 @@ module.exports = {
                         api.setMessageReaction("⏳", messageID, () => { }, true);
 
                         const apiUrl = await baseApiUrl();
-                        const url = `${apiUrl}/api/dig?type=elephant&user=${id2}`;
+                        const url = `${apiUrl}/api/dig?type=cow&user=${id2}`;
 
                         const response = await axios.get(url, { responseType: "arraybuffer" });
                         fs.writeFileSync(filePath, Buffer.from(response.data));
@@ -81,3 +81,4 @@ module.exports = {
                 }
         }
 };
+                  

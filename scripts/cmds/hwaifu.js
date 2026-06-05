@@ -1,51 +1,36 @@
 const axios = require("axios");
-const fs = require("fs-extra");
-const path = require("path");
 
 module.exports = {
   config: {
     name: "hwaifu",
-    version: "1.1",
+    version: "1.0.0",
     author: "Hridoy",
-    countDown: 5,
     role: 0,
-    shortDescription: "Random NSFW Waifu",
-    longDescription: "Get random NSFW waifu/hentai/neko image",
-    category: "NSFW"
+    cooldown: 5,
+    description: "Send random waifu image from specific artist",
+    category: "anime"
   },
 
-  onStart: async function ({ api, event, args }) {
-    const { threadID, messageID } = event;
-
-    const allowedTypes = ["waifu", "neko", "trap", "blowjob"];
-    const type = args[0] && allowedTypes.includes(args[0].toLowerCase())
-      ? args[0].toLowerCase()
-      : "waifu";
-
+  onStart: async function ({ message }) {
     try {
-      // Create temp folder if not exists
-      const cacheFolder = path.join(__dirname, "tmp");
-      if (!fs.existsSync(cacheFolder))
-        fs.mkdirSync(cacheFolder, { recursive: true });
+      const url = "https://api.waifu.im/images?IncludedArtists=186&OrderBy=Random&IsNsfw=All";
 
-      // Get image URL from API
-      const res = await axios.get(`https://api.waifu.pics/nsfw/${type}`);
-      const imgUrl = res.data.url;
+      const res = await axios.get(url);
+      const data = res.data;
 
-      // Download image
-      const imgPath = path.join(cacheFolder, `${Date.now()}_${type}.jpg`);
-      const response = await axios.get(imgUrl, { responseType: "arraybuffer" });
-      fs.writeFileSync(imgPath, Buffer.from(response.data));
+      if (!data.items || !data.items.length)
+        return message.reply("❌ No waifu found.");
 
-      // Send image
-      await api.sendMessage({
-        body: `🔞 Random ${type} image`,
-        attachment: fs.createReadStream(imgPath)
-      }, threadID, () => fs.unlinkSync(imgPath), messageID);
+      const image = data.items[0].url;
+
+      return message.reply({
+        body: "💖 Here is your waifu!",
+        attachment: await global.utils.getStreamFromURL(image)
+      });
 
     } catch (err) {
-      console.log(err);
-      api.sendMessage("Failed to fetch image ❌ Try again later.", threadID, messageID);
+      console.error(err);
+      return message.reply("❌ API error occurred.");
     }
   }
 };

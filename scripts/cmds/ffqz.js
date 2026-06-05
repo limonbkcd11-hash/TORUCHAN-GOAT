@@ -10,8 +10,8 @@ const baseApiUrl = async () => {
 
 module.exports = {
   config: {
-    name: "freefire",
-    aliases: ["ffqz", "ffgame", "ffquiz", "ff"],
+    name: "ffqz",
+    aliases: ["ffgame", "ffquiz", "ff"],
     version: "1.7",
     author: "MahMUD",
     countDown: 10,
