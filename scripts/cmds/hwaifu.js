@@ -5,10 +5,10 @@ module.exports = {
     name: "hwaifu",
     version: "1.0.0",
     author: "Hridoy",
-    role: 0,
+    role: 2,
     cooldown: 5,
     description: "Send random waifu image from specific artist",
-    category: "anime"
+    category: "NSFW"
   },
 
   onStart: async function ({ message }) {
