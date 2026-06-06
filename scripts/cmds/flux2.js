@@ -19,7 +19,7 @@ module.exports = {
                         en: "Generate high-quality AI images using Flux Pro model",
                         vi: "Tạo hình ảnh AI chất lượng cao bằng mô hình Flux Pro"
                 },
-                category: "image",
+                category: "Image",
                 guide: {
                         bn: '   {pn} <prompt> --ratio <value>: ছবি তৈরি করতে বর্ণনা ও রেশিও দিন',
                         en: '   {pn} <prompt> --ratio <value>: Provide description and ratio',
