@@ -11,7 +11,7 @@ module.exports = {
     role: 0,
     shortDescription: "Wife Banner",
     longDescription: "Generate cute wife banner using mention or reply",
-    category: "fun",
+    category: "Love",
     guide: {
       en: "{pn} @mention\nor reply someone's message and type {pn}"
     }
