@@ -1,67 +1,90 @@
-const fs = require("fs-extra");
 const axios = require("axios");
-const path = require("path");
+
+// Cooldown storage
+const cooldowns = new Map();
 
 module.exports = {
   config: {
     name: "hridoy",
-    version: "3.0",
+    version: "1.4.0",
     author: "Hridoy",
     role: 0,
-    shortDescription: "Auto Profile (Optimized)",
-    category: "Admin"
+    category: "Admin",
+    shortDescription: "Auto profile reply with keyword + admin mention",
+    countDown: 3
   },
 
-  onStart: async function () {},
+  onStart: async function () {
+    return;
+  },
 
-  onChat: async function ({ api, event }) {
+  onChat: async function ({ event, api }) {
     const msg = (event.body || "").toLowerCase();
 
-    const TARGET_UID = "100048786044500";
-    const isNameMatch = msg.includes("hridoy");
-    const isMentioned = event.mentions && Object.keys(event.mentions).includes(TARGET_UID);
+    // ✅ তোমার admin UID
+    const adminUID = "100048786044500";
 
-    if (!isNameMatch && !isMentioned) return;
+    const isKeyword = msg.includes("hridoy");
+    const isAdminMention =
+      event.mentions &&
+      Object.keys(event.mentions).includes(adminUID);
 
-    const profileText = `
-✦━━━━━━〔 𝑷𝑹𝑶𝑭𝑰𝑳𝑬 〕━━━━━━✦
-✨ NAME   ➤ HRIDOY
+    if (!isKeyword && !isAdminMention) return;
+
+    // ✅ 3 second cooldown per thread
+    const threadID = event.threadID;
+    const now = Date.now();
+
+    if (
+      cooldowns.has(threadID) &&
+      now - cooldowns.get(threadID) < 3000
+    ) {
+      return;
+    }
+
+    cooldowns.set(threadID, now);
+
+    const imageUrl = "https://i.imgur.com/6dpggxq.jpeg";
+
+    const body =
+`✦━━━━━━〔 𝑷𝑹𝑶𝑭𝑰𝑳𝑬 〕━━━━━━✦
+✨ NAME   ➤ HR ID OY
 ✨ AGE    ➤ 20+
 ✨ STATUS ➤ SINGLE
 ✨ LOC    ➤ JASHORE
 
-✦━━━━━━〔 𝑺𝑶𝑪𝑰𝑨𝑳〕━━━━━━✦
+✦━━━━━━━〔 𝑺𝑶𝑪𝑰𝑨𝑳〕━━━━━━━✦
 🌐 FB   ➤ fb.me/100048786044500
 📧 MAIL ➤ hridoyhossen049@gmail.com
 📱 WA   ➤ 01744-******
 
+✦━━━━━━━━〔 𝑮𝑨𝑴𝑬〕━━━━━━━✦
+🔫 FREE FIRE
+
 ✦━━━━━━━━━━━━━━━━━━━━✦
-⚡ SYSTEM STATUS : ONLINE
-`;
+⚡ SYSTEM STATUS : ONLINE`;
 
     try {
-      const imgUrl = "https://i.imgur.com/6dpggxq.jpeg";
-
-      // 🚀 stream directly (NO file write = no lag)
-      const imageStream = await axios.get(imgUrl, {
+      const img = await axios.get(imageUrl, {
         responseType: "stream",
-        timeout: 10000
+        headers: {
+          "User-Agent": "Mozilla/5.0"
+        }
       });
 
       return api.sendMessage(
         {
-          body: profileText,
-          attachment: imageStream.data
+          body,
+          attachment: img.data
         },
-        event.threadID,
+        threadID,
         event.messageID
       );
 
     } catch (err) {
-      console.error(err);
       return api.sendMessage(
-        "❌ Image load failed!",
-        event.threadID,
+        body + "\n\n❌ Image load failed!",
+        threadID,
         event.messageID
       );
     }
