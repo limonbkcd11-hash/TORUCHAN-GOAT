@@ -270,7 +270,7 @@ module.exports = {
     if (body === currentPrefix) {
 
       return message.reply(
-        ""
+        " 🎀> ιт'ѕ ʝυѕт му ρяєƒιχ"
       );
     }
 
