@@ -35,7 +35,7 @@ module.exports = {
 
                 const body = (event.body || "").toLowerCase();
 
-                const triggers = ["ffvideo", "ff video", "free fire video", "ফ্রি ফায়ার"];
+                const triggers = ["ffvideo", ""];
 
                 if (!triggers.some(t => body.includes(t))) return;
 
