@@ -30,12 +30,7 @@ module.exports = {
 
     // 🔥 NOPREFIX TRIGGERS
     const triggers = [
-      "onepiece",
-      "one piece",
-      "one piece video",
-      "onepiece video",
-      "onep",
-      "onep video"
+      ""
     ];
 
     if (!triggers.some(t => body.includes(t))) return;
