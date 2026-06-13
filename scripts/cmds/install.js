@@ -69,7 +69,7 @@ module.exports = {
     role: 2,
     hasPrefix: false,
     description: "Install command via reply / code / url",
-    category: "Admin"
+    category: "owner"
   },
 
   onStart: async function ({ args, message, event, api }) {
@@ -77,48 +77,59 @@ module.exports = {
     let rawCode = "";
     let fileName = "";
 
-    // reply install
     if (event.messageReply?.body) {
       const replyText = event.messageReply.body.trim();
       const url = extractUrlFromText(replyText);
 
       if (url) {
         rawCode = await fetchCodeFromUrl(url);
-        if (!rawCode) return message.reply("❌ Could not fetch code from URL.");
-      }
-      else {
+        if (!rawCode) return message.reply(
+          "✖ Failed to fetch code from URL.\n" +
+          "Please check the link and try again."
+        );
+      } else {
         rawCode = replyText;
       }
 
       fileName = extractCommandName(rawCode);
     }
 
-    // install raw url
     else if (args[0] && isURL(args[0])) {
       rawCode = await fetchCodeFromUrl(args[0]);
-      if (!rawCode) return message.reply("❌ Invalid or unreachable URL.");
+      if (!rawCode) return message.reply(
+        "✖ Invalid or unreachable URL.\n" +
+        "Make sure the link is accessible and try again."
+      );
 
       fileName = extractCommandName(rawCode);
     }
 
-    // install name.js code
     else if (args.length >= 2 && args[0].endsWith(".js")) {
       fileName = args[0];
       rawCode = args.slice(1).join(" ");
     }
 
     if (!rawCode)
-      return message.reply("⚠ Provide code, reply to code, or give a raw URL.");
+      return message.reply(
+        "⚠ No code provided.\n\n" +
+        "Usage:\n" +
+        "• Reply to a message containing code or URL\n" +
+        "• Provide a raw URL directly\n" +
+        "• install <name.js> <code>"
+      );
 
     if (!fileName)
-      return message.reply("❌ Could not detect command name.");
+      return message.reply(
+        "✖ Could not detect command name.\n" +
+        "Make sure the code has a valid name field."
+      );
 
     const filePath = path.join(process.cwd(), "scripts", "cmds", fileName);
 
-    // overwrite protection
     if (fs.existsSync(filePath)) {
       return message.reply(
-        `⚠ ${fileName} already exists.\nReact 👍 to overwrite.`,
+        `⚠ ${fileName} already exists.\n\n` +
+        "React to this message to overwrite and reinstall.",
         (err, info) => {
           global.GoatBot.onReaction.set(info.messageID, {
             commandName: "install",
@@ -140,10 +151,15 @@ module.exports = {
     );
 
     if (load.status === "success") {
-      return message.reply(`✅ Installed successfully: ${fileName}`);
-    }
-    else {
-      return message.reply(`❌ Installation failed:\n${load.error?.message || "Unknown error"}`);
+      return message.reply(
+        `✅ Installed: ${fileName}\n` +
+        `📌 Status: Loaded & Ready`
+      );
+    } else {
+      return message.reply(
+        `✖ Installation failed: ${fileName}\n` +
+        `⚠ Error: ${load.error?.message || "Unknown error"}`
+      );
     }
   },
 
@@ -166,10 +182,15 @@ module.exports = {
     );
 
     if (load.status === "success") {
-      message.reply(`✅ Overwritten & installed: ${fileName}`);
-    }
-    else {
-      message.reply(`❌ Failed:\n${load.error?.message || "Unknown error"}`);
+      message.reply(
+        `✅ Overwritten & Reloaded: ${fileName}\n` +
+        `📌 Status: Loaded & Ready`
+      );
+    } else {
+      message.reply(
+        `✖ Overwrite failed: ${fileName}\n` +
+        `⚠ Error: ${load.error?.message || "Unknown error"}`
+      );
     }
   }
 };
