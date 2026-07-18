@@ -44,6 +44,7 @@ const {
 } = require("fs-extra");
 const handlerWhenListenHasError = require("./handlerWhenListenHasError.js");
 const checkLiveCookie = require("./checkLiveCookie.js");
+const twoIdModeHelper = require("./twoIdMode.js");
 const {
   callbackListenTime,
   storage5Message
@@ -584,11 +585,13 @@ async function startBot(_0x3cad9e) {
     }, global.GoatBot.config.optionsFca, async function (_0x3f689f, _0x4d5048) {
       if (_0x3f689f) {
         log.err("LOGIN FACEBOOK", "Login failed:", _0x3f689f);
-        process.exit(1);
+        const switchedAccount = twoIdModeHelper.recordLoginFailure(global.GoatBot.config);
+        process.exit(switchedAccount ? 2 : 1);
       }
       global.GoatBot.fcaApi = _0x4d5048;
       global.GoatBot.botID = _0x4d5048.getCurrentUserID();
       log.info("LOGIN FACEBOOK", getText("login", 'loginSuccess'));
+      twoIdModeHelper.recordLoginSuccess(global.GoatBot.config);
 
       // ✅ sessionGuard — appstate corruption ও silent logout থেকে protect
       try {
@@ -807,6 +810,7 @@ async function startBot(_0x3cad9e) {
               });
               _0x54729a = true;
             }
+            twoIdModeHelper.recordLoginFailure(global.GoatBot.config);
             if (global.GoatBot.config.autoRestartWhenListenMqttError) {
               process.exit(0x2);
             }
@@ -834,6 +838,7 @@ async function startBot(_0x3cad9e) {
         }
         global.responseUptimeCurrent = responseUptimeSuccess;
         global.statusAccountBot = "good";
+        twoIdModeHelper.recordLoginSuccess(global.GoatBot.config);
         const _0x40b7b6 = global.GoatBot.config.logEvents;
         if (_0x54729a == true) {
           _0x54729a = false;
