@@ -7,12 +7,12 @@ module.exports = {
 		name: "4k",
 		aliases: ["upscale"],
 		version: "1.5",
-		author: "SIFAT X HRIDOY",
+		author: "SIFAT",
 		countDown: 15,
 		role: 0,
 		shortDescription: "AI Image Upscaler",
 		longDescription: "Upscale image to 4K using AI API",
-		category: "Image",
+		category: "tools",
 		guide: "{pn} reply to an image"
 	},
 
