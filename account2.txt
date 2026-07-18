@@ -1,0 +1,3 @@
+....
+
+Paste Your SECOND (backup) FB JSON COOKIES ✅ — only needed if twoIdMode.enable is true in config.json

@@ -20,6 +20,9 @@
 const { spawn } = require("child_process");
 const log = require("./logger/log.js");
 
+let consecutiveCrashes = 0;
+let lastCrashTime = 0;
+
 function startProject() {
 	const child = spawn("node", ["Goat.js"], {
 		cwd: __dirname,
@@ -28,10 +31,33 @@ function startProject() {
 	});
 
 	child.on("close", (code) => {
+		const now = Date.now();
+		// if the last crash/restart was more than 2 minutes ago, this is a fresh run, reset the backoff
+		if (now - lastCrashTime > 2 * 60 * 1000) {
+			consecutiveCrashes = 0;
+		}
+		lastCrashTime = now;
+
 		if (code == 2) {
+			// planned restart (scheduled auto-restart, or Two-ID Mode switching account) - go immediately
+			consecutiveCrashes = 0;
 			log.info("Restarting Project...");
 			startProject();
+			return;
 		}
+
+		if (code == 0) {
+			// clean, intentional shutdown - don't auto-restart
+			return;
+		}
+
+		// unexpected crash (e.g. code 1 = login failed and Two-ID Mode isn't enabled/didn't switch).
+		// Keep the bot alive by restarting anyway, but back off so we don't rapid-fire login
+		// attempts at Facebook if something is persistently broken (bad cookies, no internet, etc).
+		consecutiveCrashes++;
+		const delaySeconds = Math.min(10 * consecutiveCrashes, 300); // 10s, 20s, 30s ... capped at 5 min
+		log.warn(`Project exited unexpectedly (code ${code}). Restarting in ${delaySeconds}s (attempt ${consecutiveCrashes})...`);
+		setTimeout(startProject, delaySeconds * 1000);
 	});
 }
 

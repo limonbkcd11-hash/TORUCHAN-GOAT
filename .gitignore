@@ -1,0 +1,25 @@
+node_modules/
+
+# Facebook account cookies - never commit these, they let anyone log in as the bot account
+account.txt
+account.dev.txt
+account2.txt
+fb_dtsg_data.json
+
+# Local runtime data / database
+data/
+database/*.sqlite
+database/*.db
+
+# Config files often hold real API keys/passwords once filled in
+config.dev.json
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS/editor junk
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
