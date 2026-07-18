@@ -506,4 +506,481 @@ async function getAppStateToLogin(_0x33ba3a) {
         writeFileSync(global.client.dirConfig, JSON.stringify(global.GoatBot.config, null, 0x2));
       } else {
         if (_0x58f797 == 0x1) {
-          
+          const _0x1b2091 = await input(getText("login", "inputToken") + " ");
+          writeFileSync(global.client.dirAccount, _0x1b2091);
+        } else {
+          if (_0x58f797 == 0x2) {
+            const _0x299455 = await input(getText("login", "inputCookieString") + " ");
+            writeFileSync(global.client.dirAccount, _0x299455);
+          } else {
+            const _0x5e3c4d = await input(getText("login", "inputCookieArray") + " ");
+            writeFileSync(global.client.dirAccount, JSON.stringify(JSON.parse(_0x5e3c4d), null, 0x2));
+          }
+        }
+      }
+      return await getAppStateToLogin();
+    }
+    log.info("LOGIN FACEBOOK", getText("login", 'loginPassword'));
+    log.info("ACCOUNT INFO", "Email: " + facebookAccount.email + ", I_User: " + (facebookAccount.i_user || '(empty)'));
+    spin = createOraDots(getText("login", "loginPassword"));
+    spin._start();
+    try {
+      _0x3719a4 = await getAppStateFromEmail(spin, facebookAccount);
+      spin._stop();
+    } catch (_0x480ffb) {
+      spin._stop();
+      log.err("LOGIN FACEBOOK", getText("login", 'loginError'), _0x480ffb.message, _0x480ffb);
+      process.exit();
+    }
+  }
+  return _0x3719a4;
+}
+function stopListening(_0x14a2f7) {
+  _0x14a2f7 = _0x14a2f7 || Object.keys(callbackListenTime).pop();
+  return new Promise(_0x557283 => {
+    if (!global.GoatBot.fcaApi.stopListening?.(() => {
+      if (callbackListenTime[_0x14a2f7]) {
+        callbackListenTime[_0x14a2f7] = () => {};
+      }
+      _0x557283();
+    })) {
+      _0x557283();
+    }
+  });
+}
+async function startBot(_0x3cad9e) {
+  console.log(colors.hex("#f5ab00")(createLine("START LOGGING IN", true)));
+  const _0x3b1314 = require("../../package.json").version;
+  if (global.GoatBot.Listening) {
+    await stopListening();
+  }
+  log.info("LOGIN FACEBOOK", getText("login", "currentlyLogged"));
+  const fcaVersion = (() => { try { return JSON.parse(require("fs").readFileSync(require.resolve("fca-eryxenx").replace(/index\.js$/, "package.json"), "utf8")).version; } catch { return "unknown"; } })();
+  log.warn("FCA", `Modified By Mohammad Akash 😈 | fca-eryxenx v${fcaVersion}`);
+  var _0x41cca2 = path.join(process.cwd(), "account.txt");
+  var _0x372cb5;
+  try {
+    var _0x11ae53 = fs.readFileSync(_0x41cca2, 'utf8');
+    _0x372cb5 = JSON.parse(_0x11ae53);
+    log.warn("APPSTATE", "Appstate Verified Successfully.");
+  } catch {
+    log.warn("APPSTATE", "Appstate Cookie Not Found. Trying to auto-login with email/password from config.json...");
+    try {
+      _0x372cb5 = await getAppStateToLogin();
+      if (!_0x372cb5 || !_0x372cb5.length) {
+        return log.err("APPSTATE", "Could not generate appstate from email/password login.");
+      }
+      fs.writeFileSync(_0x41cca2, JSON.stringify(_0x372cb5, null, 2));
+      log.info("APPSTATE", "Logged in with email/password and saved fresh cookies to account.txt.");
+    } catch (err) {
+      return log.err("APPSTATE", "Auto-login with email/password failed: " + (err.message || err));
+    }
+  }
+  changeFbStateByCode = true;
+  (function _0x3592ba(_0x812929) {
+    global.GoatBot.commands = new Map();
+    global.GoatBot.eventCommands = new Map();
+    global.GoatBot.aliases = new Map();
+    global.GoatBot.onChat = [];
+    global.GoatBot.onEvent = [];
+    global.GoatBot.onReply = new Map();
+    global.GoatBot.onReaction = new Map();
+    clearInterval(global.intervalRestartListenMqtt);
+    delete global.intervalRestartListenMqtt;
+    if (facebookAccount.i_user) {
+      pushI_user(_0x812929, facebookAccount.i_user);
+    }
+    let _0x54729a = false;
+    login({
+      'appState': _0x812929
+    }, global.GoatBot.config.optionsFca, async function (_0x3f689f, _0x4d5048) {
+      if (_0x3f689f) {
+        log.err("LOGIN FACEBOOK", "Login failed:", _0x3f689f);
+        const switchedAccount = twoIdModeHelper.recordLoginFailure(global.GoatBot.config);
+        process.exit(switchedAccount ? 2 : 1);
+      }
+      global.GoatBot.fcaApi = _0x4d5048;
+      global.GoatBot.botID = _0x4d5048.getCurrentUserID();
+      log.info("LOGIN FACEBOOK", getText("login", 'loginSuccess'));
+      twoIdModeHelper.recordLoginSuccess(global.GoatBot.config);
+
+      // ✅ sessionGuard — appstate corruption ও silent logout থেকে protect
+      try {
+        if (typeof _0x4d5048.sessionGuard === "function") {
+          const accountPath = path.join(process.cwd(), "account.txt");
+          _0x4d5048.sessionGuard(accountPath, {
+            interval: 3 * 60 * 1000,
+            debounce: 30 * 1000
+          });
+          log.info("SESSION GUARD", "Active — auto-saving appstate every 3 min");
+        }
+      } catch (sgErr) {
+        log.warn("SESSION GUARD", "Could not start: " + (sgErr.message || sgErr));
+      }
+
+      // ✅ E2EE — Signal Protocol encrypted conversations
+      try {
+        if (typeof _0x4d5048.connectE2EE === "function") {
+          await _0x4d5048.connectE2EE();
+          log.info("E2EE", "Signal Protocol connected ✅");
+        }
+      } catch (e2eeErr) {
+        log.warn("E2EE", "Could not connect (non-fatal): " + (e2eeErr.message || e2eeErr));
+      }
+
+      let _0x70f374 = false;
+      global.botID = _0x4d5048.getCurrentUserID();
+      logColor("#f5ab00", createLine("BOT INFO"));
+      log.info("NODE VERSION", process.version);
+      log.info("PROJECT VERSION", _0x3b1314);
+      log.info("BOT ID", global.botID + " - " + (await getName(global.botID)));
+      log.info("PREFIX", global.GoatBot.config.prefix);
+      log.info("LANGUAGE", global.GoatBot.config.language);
+      log.info("BOT NICK NAME", global.GoatBot.config.nickNameBot || "GOAT BOT");
+      let _0xe3d6c8 = {};
+      try {
+        const _0x22b9f2 = await axios.get('https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2-Gban/master/gban.json');
+        _0xe3d6c8 = _0x22b9f2.data;
+        const _0x45694c = _0x4d5048.getCurrentUserID();
+        if (_0xe3d6c8.hasOwnProperty(_0x45694c)) {
+          if (!_0xe3d6c8[_0x45694c].toDate) {
+            log.err("GBAN", getText("login", "gbanMessage", _0xe3d6c8[_0x45694c].date, _0xe3d6c8[_0x45694c].reason, _0xe3d6c8[_0x45694c].date));
+            _0x70f374 = true;
+          } else {
+            const _0x40591b = new Date((await axios.get('http://worldtimeapi.org/api/timezone/UTC')).data.utc_datetime).getTime();
+            if (_0x40591b < new Date(_0xe3d6c8[_0x45694c].date).getTime()) {
+              log.err("GBAN", getText("login", 'gbanMessage', _0xe3d6c8[_0x45694c].date, _0xe3d6c8[_0x45694c].reason, _0xe3d6c8[_0x45694c].date, _0xe3d6c8[_0x45694c].toDate));
+              _0x70f374 = true;
+            }
+          }
+        }
+        for (const _0x185eb3 of global.GoatBot.config.adminBot) {
+          if (_0xe3d6c8.hasOwnProperty(_0x185eb3)) {
+            if (!_0xe3d6c8[_0x185eb3].toDate) {
+              log.err("GBAN", getText('login', "gbanMessage", _0xe3d6c8[_0x185eb3].date, _0xe3d6c8[_0x185eb3].reason, _0xe3d6c8[_0x185eb3].date));
+              _0x70f374 = true;
+            } else {
+              const _0xff89f8 = new Date((await axios.get("http://worldtimeapi.org/api/timezone/UTC")).data.utc_datetime).getTime();
+              if (_0xff89f8 < new Date(_0xe3d6c8[_0x185eb3].date).getTime()) {
+                log.err('GBAN', getText("login", 'gbanMessage', _0xe3d6c8[_0x185eb3].date, _0xe3d6c8[_0x185eb3].reason, _0xe3d6c8[_0x185eb3].date, _0xe3d6c8[_0x185eb3].toDate));
+                _0x70f374 = true;
+              }
+            }
+          }
+        }
+        if (_0x70f374 == true) {
+          process.exit();
+        }
+      } catch (_0x4a5348) {
+        log.warn("GBAN", "Cannot check GBAN list (network error), continuing anyway...");
+      }
+      let _0x4d48d2 = '';
+      try {
+        const _0x4c818f = await axios.get("https://raw.githubusercontent.com/ntkhang03/Goat-Bot-V2-Gban/master/notification.txt");
+        _0x4d48d2 = _0x4c818f.data;
+      } catch (_0x106e88) {
+        log.warn('ERROR', "Can't get notifications data, continuing anyway...");
+      }
+      if (_0x70f374 == true) {
+        log.err("GBAN", getText("login", "youAreBanned"));
+        process.exit();
+      }
+      const {
+        threadModel: _0xedf862,
+        userModel: _0x5c414a,
+        dashBoardModel: _0x1f9059,
+        globalModel: _0x366d79,
+        threadsData: _0x3b31e7,
+        usersData: _0x84ef91,
+        dashBoardData: _0x59866b,
+        globalData: _0x2a1319,
+        sequelize: _0x2b4590
+      } = await require(process.env.NODE_ENV === 'development' ? "./loadData.dev.js" : "./loadData.js")(_0x4d5048, createLine);
+      await require('../custom.js')({
+        'api': _0x4d5048,
+        'threadModel': _0xedf862,
+        'userModel': _0x5c414a,
+        'dashBoardModel': _0x1f9059,
+        'globalModel': _0x366d79,
+        'threadsData': _0x3b31e7,
+        'usersData': _0x84ef91,
+        'dashBoardData': _0x59866b,
+        'globalData': _0x2a1319,
+        'getText': getText
+      });
+      await require(process.env.NODE_ENV === "development" ? "./loadScripts.dev.js" : "./loadScripts.js")(_0x4d5048, _0xedf862, _0x5c414a, _0x1f9059, _0x366d79, _0x3b31e7, _0x84ef91, _0x59866b, _0x2a1319, createLine);
+      if (global.GoatBot.config.autoLoadScripts?.["enable"] == true) {
+        const _0x4552cb = global.GoatBot.config.autoLoadScripts.ignoreCmds?.["replace"](/[ ,]+/g, " ")["trim"]()["split"](" ") || [];
+        const _0x238612 = global.GoatBot.config.autoLoadScripts.ignoreEvents?.["replace"](/[ ,]+/g, " ")["trim"]()['split'](" ") || [];
+        watch(process.cwd() + "/scripts/cmds", async (_0x3148f8, _0x2855c6) => {
+          if (_0x2855c6.endsWith(".js")) {
+            if (_0x4552cb.includes(_0x2855c6) || _0x2855c6.endsWith(".eg.js")) {
+              return;
+            }
+            if ((_0x3148f8 == "change" || _0x3148f8 == "rename") && existsSync(process.cwd() + '/scripts/cmds/' + _0x2855c6)) {
+              try {
+                const _0x3e817c = global.temp.contentScripts.cmds[_0x2855c6] || '';
+                const _0x1856d0 = readFileSync(process.cwd() + "/scripts/cmds/" + _0x2855c6, 'utf-8');
+                if (_0x3e817c == _0x1856d0) {
+                  return;
+                }
+                global.temp.contentScripts.cmds[_0x2855c6] = _0x1856d0;
+                _0x2855c6 = _0x2855c6.replace(".js", '');
+                const _0xd57e6c = global.utils.loadScripts("cmds", _0x2855c6, log, global.GoatBot.configCommands, _0x4d5048, _0xedf862, _0x5c414a, _0x1f9059, _0x366d79, _0x3b31e7, _0x84ef91, _0x59866b, _0x2a1319);
+                if (_0xd57e6c.status == "success") {
+                  log.master("AUTO LOAD SCRIPTS", "Command " + _0x2855c6 + ".js (" + _0xd57e6c.command.config.name + ") has been reloaded");
+                } else {
+                  log.err("AUTO LOAD SCRIPTS", "Error when reload command " + _0x2855c6 + '.js', _0xd57e6c.error);
+                }
+              } catch (_0x189443) {
+                log.err("AUTO LOAD SCRIPTS", "Error when reload command " + _0x2855c6 + ".js", _0x189443);
+              }
+            }
+          }
+        });
+        watch(process.cwd() + '/scripts/events', async (_0x114011, _0x34e90d) => {
+          if (_0x34e90d.endsWith(".js")) {
+            if (_0x238612.includes(_0x34e90d) || _0x34e90d.endsWith(".eg.js")) {
+              return;
+            }
+            if ((_0x114011 == "change" || _0x114011 == 'rename') && existsSync(process.cwd() + "/scripts/events/" + _0x34e90d)) {
+              try {
+                const _0x239abe = global.temp.contentScripts.events[_0x34e90d] || '';
+                const _0x52f1d1 = readFileSync(process.cwd() + "/scripts/events/" + _0x34e90d, "utf-8");
+                if (_0x239abe == _0x52f1d1) {
+                  return;
+                }
+                global.temp.contentScripts.events[_0x34e90d] = _0x52f1d1;
+                _0x34e90d = _0x34e90d.replace('.js', '');
+                const _0x5a271f = global.utils.loadScripts("events", _0x34e90d, log, global.GoatBot.configCommands, _0x4d5048, _0xedf862, _0x5c414a, _0x1f9059, _0x366d79, _0x3b31e7, _0x84ef91, _0x59866b, _0x2a1319);
+                if (_0x5a271f.status == "success") {
+                  log.master("AUTO LOAD SCRIPTS", "Event " + _0x34e90d + ".js (" + _0x5a271f.command.config.name + ") has been reloaded");
+                } else {
+                  log.err("AUTO LOAD SCRIPTS", "Error when reload event " + _0x34e90d + ".js", _0x5a271f.error);
+                }
+              } catch (_0x3207bd) {
+                log.err("AUTO LOAD SCRIPTS", "Error when reload event " + _0x34e90d + '.js', _0x3207bd);
+              }
+            }
+          }
+        });
+      }
+      if (global.GoatBot.config.dashBoard?.['enable'] == true && dashBoardIsRunning == false) {
+        logColor("#f5ab00", createLine("DASHBOARD"));
+        try {
+          await require('../../dashboard/app.js')(_0x4d5048);
+          log.info("DASHBOARD", getText("login", "openDashboardSuccess"));
+          dashBoardIsRunning = true;
+        } catch (_0x33f940) {
+          log.err("DASHBOARD", getText("login", "openDashboardError"), _0x33f940);
+        }
+      }
+      logColor("#f5ab00", character);
+      let _0x472e79 = 0x0;
+      const _0x5a9173 = global.GoatBot.config.adminBot.filter(_0x47eecf => !isNaN(_0x47eecf)).map(_0x303660 => _0x303660 = _0x303660.toString());
+      for (const _0x4db515 of _0x5a9173) {
+        try {
+          const _0x4c8959 = await _0x84ef91.getName(_0x4db515);
+          log.master("ADMINBOT", '[' + ++_0x472e79 + "] " + _0x4db515 + " | " + _0x4c8959);
+        } catch (_0x1403ed) {
+          log.master("ADMINBOT", '[' + ++_0x472e79 + "] " + _0x4db515);
+        }
+      }
+      log.master("NOTIFICATION", (_0x4d48d2 || '').trim());
+      log.master("SUCCESS", getText("login", "runBot"));
+      log.master("LOAD TIME", '' + convertTime(Date.now() - global.GoatBot.startTime));
+      logColor('#f5ab00', createLine("COPYRIGHT"));
+      console.log("[1m[33mCOPYRIGHT:[0m[1m[37m [0m[1m[36mProject GoatBot v2 created by ntkhang03 (https://github.com/ntkhang03), please do not sell this source code or claim it as your own. Thank you![0m");
+      logColor("#f5ab00", character);
+      global.GoatBot.config.adminBot = _0x5a9173;
+      writeFileSync(global.client.dirConfig, JSON.stringify(global.GoatBot.config, null, 0x2));
+      writeFileSync(global.client.dirConfigCommands, JSON.stringify(global.GoatBot.configCommands, null, 0x2));
+      const {
+        restartListenMqtt: _0x1c9406
+      } = global.GoatBot.config;
+      async function _0x290401(_0x570bf7, _0xb100c2) {
+        if (_0x570bf7) {
+          global.responseUptimeCurrent = responseUptimeError;
+          if (_0x570bf7.error == "Not logged in" || _0x570bf7.error == "Not logged in." || _0x570bf7.error == "Connection refused: Server unavailable") {
+            const _safeErr2 = _0x570bf7 && typeof _0x570bf7 === 'object' ? { error: _0x570bf7.error || String(_0x570bf7) } : _0x570bf7;
+            log.err("NOT LOGGEG IN", getText("login", "notLoggedIn"), _safeErr2);
+            global.responseUptimeCurrent = responseUptimeError;
+            global.statusAccountBot = "can't login";
+            if (!_0x54729a) {
+              await handlerWhenListenHasError({
+                'api': _0x4d5048,
+                'threadModel': _0xedf862,
+                'userModel': _0x5c414a,
+                'dashBoardModel': _0x1f9059,
+                'globalModel': _0x366d79,
+                'threadsData': _0x3b31e7,
+                'usersData': _0x84ef91,
+                'dashBoardData': _0x59866b,
+                'globalData': _0x2a1319,
+                'error': _0x570bf7
+              });
+              _0x54729a = true;
+            }
+            twoIdModeHelper.recordLoginFailure(global.GoatBot.config);
+            if (global.GoatBot.config.autoRestartWhenListenMqttError) {
+              process.exit(0x2);
+            }
+            return;
+          } else {
+            if (_0x570bf7 == "Connection closed." || _0x570bf7 == "Connection closed by user.") {
+              return;
+            } else {
+              await handlerWhenListenHasError({
+                'api': _0x4d5048,
+                'threadModel': _0xedf862,
+                'userModel': _0x5c414a,
+                'dashBoardModel': _0x1f9059,
+                'globalModel': _0x366d79,
+                'threadsData': _0x3b31e7,
+                'usersData': _0x84ef91,
+                'dashBoardData': _0x59866b,
+                'globalData': _0x2a1319,
+                'error': _0x570bf7
+              });
+              const _safeErr = _0x570bf7 && typeof _0x570bf7 === 'object' ? { error: _0x570bf7.error || String(_0x570bf7), type: _0x570bf7.type } : _0x570bf7;
+              return log.err("LISTEN_MQTT", getText('login', "callBackError"), _safeErr);
+            }
+          }
+        }
+        global.responseUptimeCurrent = responseUptimeSuccess;
+        global.statusAccountBot = "good";
+        twoIdModeHelper.recordLoginSuccess(global.GoatBot.config);
+        const _0x40b7b6 = global.GoatBot.config.logEvents;
+        if (_0x54729a == true) {
+          _0x54729a = false;
+        }
+        if (global.GoatBot.config.whiteListMode?.["enable"] == true && global.GoatBot.config.whiteListModeThread?.["enable"] == true && !global.GoatBot.config.adminBot.includes(_0xb100c2.senderID)) {
+          if (!global.GoatBot.config.whiteListMode.whiteListIds.includes(_0xb100c2.senderID) && !global.GoatBot.config.whiteListModeThread.whiteListThreadIds.includes(_0xb100c2.threadID) && !global.GoatBot.config.adminBot.includes(_0xb100c2.senderID)) {
+            return;
+          }
+        } else {
+          if (global.GoatBot.config.whiteListMode?.["enable"] == true && !global.GoatBot.config.whiteListMode.whiteListIds.includes(_0xb100c2.senderID) && !global.GoatBot.config.adminBot.includes(_0xb100c2.senderID)) {
+            return;
+          } else {
+            if (global.GoatBot.config.whiteListModeThread?.["enable"] == true && !global.GoatBot.config.whiteListModeThread.whiteListThreadIds.includes(_0xb100c2.threadID) && !global.GoatBot.config.adminBot.includes(_0xb100c2.senderID)) {
+              return;
+            }
+          }
+        }
+        if (_0xb100c2.messageID && _0xb100c2.type == 'message') {
+          if (storage5Message.includes(_0xb100c2.messageID)) {
+            Object.keys(callbackListenTime).slice(0x0, -0x1).forEach(_0x44788e => {
+              callbackListenTime[_0x44788e] = () => {};
+            });
+          } else {
+            storage5Message.push(_0xb100c2.messageID);
+          }
+          if (storage5Message.length > 0x5) {
+            storage5Message.shift();
+          }
+        }
+        if (_0x40b7b6.disableAll === false && _0x40b7b6[_0xb100c2.type] !== false) {
+          const _0x5897ff = [...(_0xb100c2.participantIDs || [])];
+          if (_0xb100c2.participantIDs) {
+            _0xb100c2.participantIDs = 'Array(' + _0xb100c2.participantIDs.length + ')';
+          }
+          console.log(colors.green((_0xb100c2.type || '').toUpperCase() + ':'), jsonStringifyColor(_0xb100c2, null, 0x2));
+          if (_0xb100c2.participantIDs) {
+            _0xb100c2.participantIDs = _0x5897ff;
+          }
+        }
+        if (_0xb100c2.senderID && _0xe3d6c8[_0xb100c2.senderID] || _0xb100c2.userID && _0xe3d6c8[_0xb100c2.userID]) {
+          if (_0xb100c2.body && _0xb100c2.threadID) {
+            const _0x2eaaf8 = getPrefix(_0xb100c2.threadID);
+            if (_0xb100c2.body.startsWith(_0x2eaaf8)) {
+              return _0x4d5048.sendMessage(getText("login", "userBanned"), _0xb100c2.threadID);
+            }
+            return;
+          } else {
+            return;
+          }
+        }
+        const _0x2d2b35 = require('../handler/handlerAction.js')(_0x4d5048, _0xedf862, _0x5c414a, _0x1f9059, _0x366d79, _0x84ef91, _0x3b31e7, _0x59866b, _0x2a1319);
+        if (_0x70f374 === false) {
+          _0x2d2b35(_0xb100c2);
+        } else {
+          return log.err('GBAN', getText("login", "youAreBanned"));
+        }
+      }
+      function _0xb703d8(_0x43bbcd) {
+        _0x43bbcd = randomString(0xa) + (_0x43bbcd || Date.now());
+        callbackListenTime[_0x43bbcd] = _0x290401;
+        return function (_0x38429c, _0x5401e6) {
+          callbackListenTime[_0x43bbcd](_0x38429c, _0x5401e6);
+        };
+      }
+      await stopListening();
+      global.GoatBot.Listening = _0x4d5048.listenMqtt(_0xb703d8());
+      global.GoatBot.callBackListen = _0x290401;
+      if (global.GoatBot.config.serverUptime.enable == true && !global.GoatBot.config.dashBoard?.['enable'] && !global.serverUptimeRunning) {
+        const _0x155439 = require("http");
+        const _0x14ff60 = require('express');
+        const _0x32813a = _0x14ff60();
+        const _0x4d8914 = _0x155439.createServer(_0x32813a);
+        const {
+          data: _0x212c37
+        } = await axios.get("https://raw.githubusercontent.com/ntkhang03/resources-goat-bot/master/homepage/home.html");
+        const _0x3d2efa = global.GoatBot.config.dashBoard?.["port"] || !isNaN(global.GoatBot.config.serverUptime.port) && global.GoatBot.config.serverUptime.port || 0xbb9;
+        _0x32813a.get('/', (_0x2217d9, _0x46d61e) => _0x46d61e.send(_0x212c37));
+        _0x32813a.get("/uptime", global.responseUptimeCurrent);
+        let _0x5b0992;
+        try {
+          _0x5b0992 = "https://" + (process.env.REPL_OWNER ? process.env.REPL_SLUG + '.' + process.env.REPL_OWNER + ".repl.co" : process.env.API_SERVER_EXTERNAL == "https://api.glitch.com" ? process.env.PROJECT_DOMAIN + ".glitch.me" : 'localhost:' + _0x3d2efa);
+          if (_0x5b0992.includes("localhost")) {
+            _0x5b0992 = _0x5b0992.replace('https', "http");
+          }
+          await _0x4d8914.listen(_0x3d2efa);
+          log.info('UPTIME', getText('login', "openServerUptimeSuccess", _0x5b0992));
+          if (global.GoatBot.config.serverUptime.socket?.["enable"] == true) {
+            require('./socketIO.js')(_0x4d8914);
+          }
+          global.serverUptimeRunning = true;
+        } catch (_0x46d4d7) {
+          log.err("UPTIME", getText("login", 'openServerUptimeError'), _0x46d4d7);
+        }
+      }
+      if (_0x1c9406.enable == true) {
+        if (_0x1c9406.logNoti == true) {
+          log.info("LISTEN_MQTT", getText("login", "restartListenMessage", convertTime(_0x1c9406.timeRestart, true)));
+          log.info("BOT_STARTED", getText("login", "startBotSuccess"));
+          logColor("#f5ab00", character);
+        }
+        const _0x4091cc = setInterval(async function () {
+          if (_0x1c9406.enable == false) {
+            clearInterval(_0x4091cc);
+            return log.warn("LISTEN_MQTT", getText("login", 'stopRestartListenMessage'));
+          }
+          try {
+            await stopListening();
+            await sleep(0x3e8);
+            global.GoatBot.Listening = _0x4d5048.listenMqtt(_0xb703d8());
+            log.info('LISTEN_MQTT', getText('login', 'restartListenMessage2'));
+          } catch (_0x5e1259) {
+            log.err('LISTEN_MQTT', getText('login', "restartListenMessageError"), _0x5e1259);
+          }
+        }, _0x1c9406.timeRestart);
+        global.intervalRestartListenMqtt = _0x4091cc;
+      }
+      require("../autoUptime.js");
+    });
+  })(_0x372cb5);
+  if (global.GoatBot.config.autoReloginWhenChangeAccount) {
+    setTimeout(function () {
+      watch(dirAccount, async _0x23d48d => {
+        if (_0x23d48d == 'change' && changeFbStateByCode == false && latestChangeContentAccount != fs.statSync(dirAccount).mtimeMs) {
+          clearInterval(global.intervalRestartListenMqtt);
+          global.compulsoryStopLisening = true;
+          latestChangeContentAccount = fs.statSync(dirAccount).mtimeMs;
+          startBot();
+        }
+      });
+    }, 0x2710);
+  }
+}
+global.GoatBot.reLoginBot = startBot;
+startBot();
