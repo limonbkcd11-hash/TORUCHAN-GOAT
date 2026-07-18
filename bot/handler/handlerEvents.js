@@ -328,6 +328,15 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
 			// ——————————————— RUN COMMAND ——————————————— //
 			const time = getTime("DD/MM/YYYY HH:mm:ss");
 			isUserCallCommand = true;
+
+			// ————————— TYPING INDICATOR ON ————————— //
+			try {
+				if (typeof api.sendTypingIndicator == "function")
+					await api.sendTypingIndicator(true, threadID);
+			} catch (err) {
+				log.err("TYPING_INDICATOR", "Failed to turn on typing indicator", err);
+			}
+
 			try {
 				// analytics command call
 				(async () => {
@@ -353,6 +362,15 @@ module.exports = function (api, threadModel, userModel, dashBoardModel, globalMo
 			catch (err) {
 				log.err("CALL COMMAND", `An error occurred when calling the command ${commandName}`, err);
 				return await message.reply(utils.getText({ lang: langCode, head: "handlerEvents" }, "errorOccurred", time, commandName, removeHomeDir(err.stack ? err.stack.split("\n").slice(0, 5).join("\n") : JSON.stringify(err, null, 2))));
+			}
+			finally {
+				// ————————— TYPING INDICATOR OFF ————————— //
+				try {
+					if (typeof api.sendTypingIndicator == "function")
+						await api.sendTypingIndicator(false, threadID);
+				} catch (err) {
+					log.err("TYPING_INDICATOR", "Failed to turn off typing indicator", err);
+				}
 			}
 		}
 
