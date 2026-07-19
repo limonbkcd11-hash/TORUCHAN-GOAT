@@ -9,7 +9,7 @@
     "intervalGetNewCookie": 1440,
     "notes": "Automatically retrieves new cookies every x minutes. Recommended: 1440 (1 day)."
   },
-  "antiInbox": true,
+  "antiInbox": false,
   "language": "en",
   "notesLanguage": "change language using ISO 639-1 code",
   "nickNameBot": " ✦ 𝙏𝙊𝙍𝙐 𝘾𝙃𝘼𝙉 ✦",
@@ -155,7 +155,7 @@
     "typ": false,
     "presence": false
   },
-  "optionsFca": {
+    "optionsFca": {
     "forceLogin": true,
     "listenEvents": true,
     "updatePresence": true,
@@ -165,6 +165,7 @@
     "selfListenEvent": true,
     "autoMarkDelivery": false,
     "autoReconnect": true,
+    "enableE2EE": true
     "notes": "Docs: https://github.com/ntkhang03/fb-chat-api/blob/master/DOCS.md#apisetoptionsoptions"
   }
 }
