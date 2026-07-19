@@ -69,7 +69,7 @@ function centerText(_0x4f9e3a, _0x5dd3db) {
   const _0x46b4da = " ".repeat(_0x1bd1ec > 0x0 ? _0x1bd1ec : 0x0) + _0x4f9e3a + " ".repeat(_0x55e74f > 0x0 ? _0x55e74f : 0x0);
   console.log(_0x46b4da);
 }
-const titles = [["██████╗  ██████╗  █████╗ ████████╗    ██╗   ██╗██████╗", "██╔════╝ ██╔═══██╗██╔══██╗╚══██╔══╝    ██║   ██║╚════██╗", "██║  ███╗██║   ██║███████║   ██║       ██║   ██║ █████╔╝", "██║   ██║██║   ██║██╔══██║   ██║       ╚██╗ ██╔╝██╔═══╝", "╚██████╔╝╚██████╔╝██║  ██║   ██║        ╚████╔╝ ███████╗", "╚═════╝  ╚═════╝ ╚═╝  ╚═╝   ╚═╝         ╚═══╝  ╚══════╝"], ["█▀▀ █▀█ ▄▀█ ▀█▀  █▄▄ █▀█ ▀█▀  █░█ ▀█", "█▄█ █▄█ █▀█ ░█░  █▄█ █▄█ ░█░  ▀▄▀ █▄"], ["G O A T B O T  V 2 @" + currentVersion], ["GOATBOT V2"]];
+const titles = [["██╗  ██╗ ██████╗  ██╗ ██████╗   ██████╗  ██╗   ██╗", "██║  ██║ ██╔══██╗ ██║ ██╔══██╗ ██╔═══██╗ ╚██╗ ██╔╝", "███████║ ██████╔╝ ██║ ██║  ██║ ██║   ██║  ╚████╔╝ ", "██╔══██║ ██╔══██╗ ██║ ██║  ██║ ██║   ██║   ╚██╔╝  ", "██║  ██║ ██║  ██║ ██║ ██████╔╝ ╚██████╔╝    ██║   ", "╚═╝  ╚═╝ ╚═╝  ╚═╝ ╚═╝ ╚═════╝   ╚═════╝     ╚═╝   "], ["HRIDOY BOT"], ["H R I D O Y  B O T  V 2 @" + currentVersion], ["HRIDOY BOT V2"]];
 const maxWidth = process.stdout.columns;
 const title = maxWidth > 0x3a ? titles[0x0] : maxWidth > 0x24 ? titles[0x1] : maxWidth > 0x1a ? titles[0x2] : titles[0x3];
 console.log(gradient("#f5af19", "#f12711")(createLine(null, true)));
@@ -78,7 +78,7 @@ for (const text of title) {
   const textColor = gradient("#FA8BFF", "#2BD2FF", "#2BFF88")(text);
   centerText(textColor, text.length);
 }
-let subTitle = "GoatBot V2@" + currentVersion + "- Powered by MOHAMMAD AKASH";
+let subTitle = "HRIDOY BOT V2@" + currentVersion + "- Powered by HRIDOY";
 const subTitleArray = [];
 if (subTitle.length > maxWidth) {
   while (subTitle.length > maxWidth) {
@@ -556,7 +556,7 @@ async function startBot(_0x3cad9e) {
   }
   log.info("LOGIN FACEBOOK", getText("login", "currentlyLogged"));
   const fcaVersion = (() => { try { return JSON.parse(require("fs").readFileSync(require.resolve("fca-eryxenx").replace(/index\.js$/, "package.json"), "utf8")).version; } catch { return "unknown"; } })();
-  log.warn("FCA", `Modified By Mohammad Akash 😈 | fca-eryxenx v${fcaVersion}`);
+  log.warn("FCA", `Modified By HRIDOY 😈 | hridoy-fca v${fcaVersion}`);
   var _0x41cca2 = path.join(process.cwd(), "account.txt");
   var _0x372cb5;
   try {
