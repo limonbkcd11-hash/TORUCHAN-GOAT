@@ -1,4 +1,4 @@
-process.stdout.write("]2;EryXenX 🌐 Ultra Edition\\");
+process.stdout.write("]2;HR ID OY 🌐 Ultra Edition\\");
 function decode(_0x3eea0c) {
   _0x3eea0c = Buffer.from(_0x3eea0c, 'hex').toString('utf-8');
   _0x3eea0c = Buffer.from(_0x3eea0c, "hex").toString('utf-8');
