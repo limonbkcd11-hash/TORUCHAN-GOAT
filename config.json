@@ -165,7 +165,7 @@
     "selfListenEvent": true,
     "autoMarkDelivery": false,
     "autoReconnect": true,
-    "enableE2EE": true
+    "enableE2EE": true,
     "notes": "Docs: https://github.com/ntkhang03/fb-chat-api/blob/master/DOCS.md#apisetoptionsoptions"
   }
 }
