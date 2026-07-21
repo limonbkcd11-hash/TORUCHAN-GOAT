@@ -1,12 +1,12 @@
 const axios = require("axios");
 
-// Cooldown storage
+// Cooldown storage (per thread)
 const cooldowns = new Map();
 
 module.exports = {
   config: {
     name: "hridoy",
-    version: "1.4.0",
+    version: "1.5.0",
     author: "Hridoy",
     role: 0,
     category: "Admin",
@@ -19,6 +19,9 @@ module.exports = {
   },
 
   onChat: async function ({ event, api }) {
+    // ✅ নিজের (বটের) মেসেজে রিয়েক্ট না করা — স্প্যাম/লুপ বন্ধ রাখতে
+    if (event.senderID === api.getCurrentUserID()) return;
+
     const msg = (event.body || "").toLowerCase();
 
     // ✅ তোমার admin UID
@@ -31,13 +34,14 @@ module.exports = {
 
     if (!isKeyword && !isAdminMention) return;
 
-    // ✅ 3 second cooldown per thread
+    // ✅ Cooldown per thread (spam বন্ধ রাখতে ১৫ সেকেন্ড)
     const threadID = event.threadID;
+    const COOLDOWN_MS = 15000;
     const now = Date.now();
 
     if (
       cooldowns.has(threadID) &&
-      now - cooldowns.get(threadID) < 3000
+      now - cooldowns.get(threadID) < COOLDOWN_MS
     ) {
       return;
     }

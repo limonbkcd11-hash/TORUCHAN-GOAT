@@ -105,35 +105,46 @@ module.exports = {
       "https://i.imgur.com/KrEez4A.gif"
     ];
 
-    // ================= TEXT FRAMES =================
+    // ================= TEXT FRAMES (STYLISH) =================
     const textFrames = [
-`🌟 PREFIX INFO 🌟
-🕒 Ping: ${ping}ms
-📅 Day: ${day}
-💠 Bot Prefix: ${botPrefix}
-💬 Group Prefix: ${groupPrefix}
-🤖 Bot Name: ${BOTNAME}`,
+`╭─❍ ⟣ 𝗣𝗥𝗘𝗙𝗜𝗫 𝗜𝗡𝗙𝗢 ⟢ ❍─╮
 
-`╭━PREFIX STATUS━╮
-│ Ping: ${ping}ms
-│ Day: ${day}
-│ Prefix: ${botPrefix}
-│ Group: ${groupPrefix}
-╰━━━━━━━━━━━━╯`,
+  ⏱️  𝗣𝗶𝗻𝗴     : ${ping}ms
+  📅  𝗗𝗮𝘆      : ${day}
+  💠  𝗕𝗼𝘁 𝗣𝗿𝗲𝗳𝗶𝘅 : ${botPrefix}
+  💬  𝗚𝗿𝗼𝘂𝗽 𝗣𝗿𝗲𝗳𝗶𝘅 : ${groupPrefix}
+  🤖  𝗕𝗼𝘁 𝗡𝗮𝗺𝗲  : ${BOTNAME}
 
-`┏━ PREFIX INFO━┓
-┃ Ping: ${ping}ms
-┃ Day: ${day}
-┃ Bot: ${BOTNAME}
-┃ Prefix: ${botPrefix}
-┗━━━━━━━━━━━┛`,
+╰─❍ ⟣ 𝗧𝗛𝗔𝗡𝗞  𝗬𝗢𝗨 ⟢ ❍─╯`,
 
-`▸ PREFIX STATUS ◂
-Ping: ${ping}ms
-Day: ${day}
-Prefix: ${botPrefix}
-Group: ${groupPrefix}`
+`┏━━━━━━━━━━━━━━━━━━━━┓
+┃       ✦ 𝙋𝙍𝙀𝙁𝙄𝙓 𝙎𝙏𝘼𝙏𝙐𝙎 ✦        ┃
+┣━━━━━━━━━━━━━━━━━━━━┫
+┃ ⏱️  𝙋𝙞𝙣𝙜   ➜ ${ping}ms
+┃ 📅  𝘿𝙖𝙮    ➜ ${day}
+┃ 💠  𝙋𝙧𝙚𝙛𝙞𝙭  ➜ ${botPrefix}
+┃ 💬  𝙂𝙧𝙤𝙪𝙥   ➜ ${groupPrefix}
+┃ 🤖  𝘽𝙤𝙩     ➜ ${BOTNAME}
+┗━━━━━━━━━━━━━━━━━━━━┛`,
 
+`▁ ▂ ▃ ▄  𝐏𝐑𝐄𝐅𝐈𝐗 𝐈𝐍𝐅𝐎  ▄ ▃ ▂ ▁
+
+  ➤ 𝐏𝐢𝐧𝐠         ⋮ ${ping}ms
+  ➤ 𝐃𝐚𝐲          ⋮ ${day}
+  ➤ 𝐁𝐨𝐭 𝐍𝐚𝐦𝐞     ⋮ ${BOTNAME}
+  ➤ 𝐁𝐨𝐭 𝐏𝐫𝐞𝐟𝐢𝐱   ⋮ ${botPrefix}
+  ➤ 𝐆𝐫𝐨𝐮𝐩 𝐏𝐫𝐞𝐟𝐢𝐱 ⋮ ${groupPrefix}
+
+▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔ ▔`,
+
+`  ⟦ 𝙿 𝚁 𝙴 𝙵 𝙸 𝚇   𝚂 𝚃 𝙰 𝚃 𝚄 𝚂 ⟧
+
+  ⌁ 𝙿𝚒𝚗𝚐          » ${ping}ms
+  ⌁ 𝙳𝚊𝚢           » ${day}
+  ⌁ 𝙿𝚛𝚎𝚏𝚒𝚡        » ${botPrefix}
+  ⌁ 𝙶𝚛𝚘𝚞𝚙 𝙿𝚛𝚎𝚏𝚒𝚡  » ${groupPrefix}
+
+  ⟦ 𝙿𝚘𝚠𝚎𝚛𝚎𝚍 𝚋𝚢 ${BOTNAME} ⟧`
     ];
 
     // ================= RANDOM SELECT =================

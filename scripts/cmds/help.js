@@ -6,7 +6,7 @@ module.exports = {
   config: {
     name: "help",
     aliases: ["menu"],
-    version: "11.0",
+    version: "12.0",
     author: "HRIDOY",
     shortDescription: "Animated Help Menu With Category Filter",
     category: "System",
@@ -19,7 +19,22 @@ module.exports = {
     const categories = {};
     const commands = [];
 
-    // ===== CATEGORY WHITELIST =====
+    // ===== CATEGORY WHITELIST + ICONS =====
+    const categoryIcons = {
+      "Admin":"⚜️",
+      "AI": "🧠",
+      "Group": "👥",
+      "Image": "🖼️",
+      "Game": "🎮",
+      "Love": "💗",
+      "Tag Fun": "🏷️",
+      "Media": "🎬",
+      "System": "⚙️",
+      "Utility": "🛠️",
+      "Others": "📦"
+    };
+
+    // এই ক্যাটাগরিগুলো "help" (all ছাড়া) দিলে দেখাবে
     const allowedCategories = [
       "AI",
       "Group",
@@ -30,18 +45,23 @@ module.exports = {
       "Media"
     ];
 
+    const showAll = args[0] && args[0].toLowerCase() === "all";
+
     // ===== SINGLE COMMAND INFO =====
-    if (args[0] && args[0] !== "all") {
+    if (args[0] && !showAll) {
       const cmd = commandsMap.get(args[0].toLowerCase());
-      if (!cmd) return message.reply("❌ Command not found!");
+      if (!cmd) return message.reply("❌ | Command not found! Try: " + prefix + "help all");
 
       return message.reply(
-`╭━━━〔 ✦ 𝐂𝐎𝐌𝐌𝐀𝐍𝐃 𝐈𝐍𝐅𝐎 ✦ 〕━━━⬣
-┃ ⌬ 𝐍𝐚𝐦𝐞 : ${cmd.config.name}
-┃ ⌬ 𝐂𝐚𝐭𝐞𝐠𝐨𝐫𝐲 : ${cmd.config.category}
-┃ ⌬ 𝐃𝐞𝐬𝐜𝐫𝐢𝐩𝐭𝐢𝐨𝐧 : ${cmd.config.shortDescription}
-┃ ⌬ 𝐔𝐬𝐚𝐠𝐞 : \( {prefix} \){cmd.config.name}
-╰━━━━━━━━━━━━━━━━━━━⬣`
+`╭───〔 ✦ 𝗖𝗢𝗠𝗠𝗔𝗡𝗗 𝗜𝗡𝗙𝗢 ✦ 〕───╮
+
+  📌  𝗡𝗮𝗺𝗲       : ${cmd.config.name}
+  🗂️  𝗖𝗮𝘁𝗲𝗴𝗼𝗿𝘆    : ${categoryIcons[cmd.config.category] || "📦"} ${cmd.config.category}
+  📝  𝗗𝗲𝘀𝗰𝗿𝗶𝗽𝘁𝗶𝗼𝗻  : ${cmd.config.shortDescription || "N/A"}
+  💡  𝗨𝘀𝗮𝗴𝗲       : ${prefix}${cmd.config.name}
+  🔖  𝗔𝗹𝗶𝗮𝘀𝗲𝘀      : ${cmd.config.aliases ? cmd.config.aliases.join(", ") : "None"}
+
+╰────────────────────────╯`
       );
     }
 
@@ -49,9 +69,8 @@ module.exports = {
     for (let [name, cmd] of commandsMap) {
       const cat = cmd.config.category || "Others";
 
-      if (args[0] !== "all") {
-        if (!allowedCategories.includes(cat)) continue;
-      }
+      // showAll না হলে শুধু allowedCategories এর কমান্ড নেবে
+      if (!showAll && !allowedCategories.includes(cat)) continue;
 
       if (!categories[cat]) categories[cat] = [];
       categories[cat].push(name);
@@ -63,12 +82,12 @@ module.exports = {
 
     // ===== LOADING ANIMATION (PROGRESS BAR) =====
     const loadingFrames = [
-      "⏳ 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮...\n▰▱▱▱▱▱▱▱▱▱ 10%",
-      "⏳ 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮...\n▰▰▰▱▱▱▱▱▱▱ 30%",
-      "⏳ 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮...\n▰▰▰▰▰▱▱▱▱▱ 50%",
-      "⏳ 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮...\n▰▰▰▰▰▰▰▱▱▱ 70%",
-      "⏳ 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮...\n▰▰▰▰▰▰▰▰▰▱ 90%",
-      "⏳ 𝐋𝐨𝐚𝐝𝐢𝐧𝐠 𝐇𝐞𝐥𝐩 𝐌𝐞𝐧𝐮...\n▰▰▰▰▰▰▰▰▰▰ 100%"
+      "⏳ 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 𝗛𝗲𝗹𝗽 𝗠𝗲𝗻𝘂...\n▰▱▱▱▱▱▱▱▱▱ 10%",
+      "⏳ 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 𝗛𝗲𝗹𝗽 𝗠𝗲𝗻𝘂...\n▰▰▰▱▱▱▱▱▱▱ 30%",
+      "⏳ 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 𝗛𝗲𝗹𝗽 𝗠𝗲𝗻𝘂...\n▰▰▰▰▰▱▱▱▱▱ 50%",
+      "⏳ 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 𝗛𝗲𝗹𝗽 𝗠𝗲𝗻𝘂...\n▰▰▰▰▰▰▰▱▱▱ 70%",
+      "⏳ 𝗟𝗼𝗮𝗱𝗶𝗻𝗴 𝗛𝗲𝗹𝗽 𝗠𝗲𝗻𝘂...\n▰▰▰▰▰▰▰▰▰▱ 90%",
+      "✅ 𝗛𝗲𝗹𝗽 𝗠𝗲𝗻𝘂 𝗥𝗲𝗮𝗱𝘆!\n▰▰▰▰▰▰▰▰▰▰ 100%"
     ];
 
     let loadingMsg;
@@ -91,31 +110,47 @@ module.exports = {
     }
 
     // ===== BUILD HELP TEXT =====
-    let msg = `╭━━━〔 ✦ 𝐀𝐃𝐕𝐀𝐍𝐂𝐄𝐃 𝐇𝐄𝐋𝐏 𝐏𝐀𝐍𝐄𝐋 ✦ 〕━━━⬣\n`;
-    msg += `┃ ⌬ 𝐓𝐨𝐭𝐚𝐥 𝐂𝐨𝐦𝐦𝐚𝐧𝐝𝐬 : ${commands.length}\n`;
-    msg += `┃ ⌬ 𝐁𝐨𝐭 𝐏𝐫𝐞𝐟𝐢𝐱 : 『 ${prefix} 』\n`;
-    msg += `┃ ⌬ 𝐒𝐭𝐚𝐭𝐮𝐬 : 𝐀𝐜𝐭𝐢𝐯𝐞 🟢\n`;
-    msg += `╰━━━━━━━━━━━━━━━━━━━⬣\n\n`;
+    const now = new Date();
+    const dateStr = now.toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" });
+    const timeStr = now.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit" });
+
+    // ===== UPTIME =====
+    const uptimeSeconds = process.uptime();
+    const upDays = Math.floor(uptimeSeconds / 86400);
+    const upHours = Math.floor((uptimeSeconds % 86400) / 3600);
+    const upMinutes = Math.floor((uptimeSeconds % 3600) / 60);
+    const upSeconds = Math.floor(uptimeSeconds % 60);
+    const uptimeStr = `${upDays}d ${upHours}h ${upMinutes}m ${upSeconds}s`;
+
+    let msg = `╭─❍⟣ 𝗧𝗢𝗥𝗨 𝗛𝗘𝗟𝗣 𝗣𝗔𝗡𝗘𝗟 ⟢❍─╮\n\n`;
+    msg += `   📦  𝗧𝗼𝘁𝗮𝗹 𝗖𝗼𝗺𝗺𝗮𝗻𝗱𝘀 : ${commands.length}\n`;
+    msg += `   🔑  𝗕𝗼𝘁 𝗣𝗿𝗲𝗳𝗶𝘅    : 『 ${prefix} 』\n`;
+    msg += `   🟢  𝗦𝘁𝗮𝘁𝘂𝘀        : Active\n`;
+    msg += `   🕒  𝗧𝗶𝗺𝗲          : ${timeStr}\n`;
+    msg += `   ⏱️  𝗨𝗽𝘁𝗶𝗺𝗲       : ${uptimeStr}\n\n`;
+    msg += `╰─────────────────────╯\n\n`;
 
     for (let [cat, cmds] of Object.entries(categories)) {
-      msg += `╭━━━〔 🗂️  ${cat.toUpperCase()} 〕━━━⬣\n`;
+      const icon = categoryIcons[cat] || "📦";
+      msg += `┌─「 ${icon}  ${cat.toUpperCase()} 」\n`;
 
       for (let i = 0; i < cmds.length; i += 2) {
-        const row = [`✧ ${cmds[i]}`];
-        if (cmds[i + 1])
-          row.push(`┃ ✧ ${cmds[i + 1]}`);
-
-        msg += `┃ ${row.join("   ")}\n`;
+        const left = cmds[i];
+        const right = cmds[i + 1];
+        msg += right
+          ? `│  ✧ ${left}   ✧ ${right}\n`
+          : `│  ✧ ${left}\n`;
       }
 
-      msg += `╰━━━━━━━━━━━━━━━━━━━⬣\n\n`;
+      msg += `└───────────────\n\n`;
     }
 
-    msg += `╭━━━〔 👑 𝐁𝐎𝐓 𝐈𝐍𝐅𝐎 〕━━━⬣\n`;
-    msg += `┃ 👤 𝐀𝐝𝐦𝐢𝐧 : Kakashi Hatake\n`;
-    msg += `┃ 📩 𝐑𝐞𝐩𝐨𝐫𝐭 : ${prefix}callad (yourmsg)\n`;
-    msg += `┃ ⚡ 𝐏𝐨𝐰𝐞𝐫𝐞𝐝 𝐁𝐲 : HRIDOY\n`;
-    msg += `╰━━━━━━━━━━━━━━━━━━━⬣\n`;
+    msg += `╭──❍  ⟣ 👑 𝗕𝗢𝗧  𝗜𝗡𝗙𝗢  ⟢ ❍──╮\n\n`;
+    msg += `   👤  𝗔𝗱𝗺𝗶𝗻       : HR ID OY\n`;
+    msg += `   📩  𝗥𝗲𝗽𝗼𝗿𝘁       : ${prefix}callad (yourmsg)\n`;
+    msg += `   ℹ️  𝗖𝗺𝗱 𝗜𝗻𝗳𝗼    : ${prefix}help <command>\n`;
+    msg += `   ⚡  𝗣𝗼𝘄𝗲𝗿𝗲𝗱 𝗕𝘆 : HRIDOY\n\n`;
+    msg += `╰─────────────────────╯`;
 
     // ===== RANDOM GIF =====
     const gifURLs = [
@@ -161,12 +196,12 @@ module.exports = {
       attachment: fs.existsSync(gifPath) ? fs.createReadStream(gifPath) : null
     });
 
-    // ===== AUTO DELETE AFTER 30s =====
+    // ===== AUTO DELETE AFTER 1 MINUTE =====
     setTimeout(() => {
       try {
         api.unsendMessage(sent.messageID);
       } catch (e) {}
-    }, 30000);
+    }, 60000);
   }
 };
 

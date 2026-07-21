@@ -1,82 +1,58 @@
-const axios = require("axios");
-
-const getBase = async () => {
-        const res = await axios.get("https://raw.githubusercontent.com/mahmudx7/HINATA/main/baseApiUrl.json");
-        return res.data.mahmud;
-};
+const axios = require('axios');
 
 module.exports = {
-        config: {
-                name: "imgur",
-                aliases: ["i"],
-                version: "1.7",
-                author: "MahMUD",
-                countDown: 10,
-                role: 0,
-                description: {
-                        bn: "যেকোনো ছবি বা ভিডিওকে Imgur লিঙ্কে রূপান্তর করুন",
-                        en: "Convert any image or video into an Imgur link",
-                        vi: "Chuyển đổi bất kỳ hình ảnh hoặc video nào thành liên kết Imgur"
-                },
-                category: "Image",
-                guide: {
-                        bn: '   {pn}: মিডিয়া ফাইলে রিপ্লাই দিয়ে ব্যবহার করুন',
-                        en: '   {pn}: Reply to a media file to get the link',
-                        vi: '   {pn}: Phản hồi tệp phương tiện để lấy liên kết'
-                }
-        },
+  config: {
+    name: "imgur",
+    version: "1.5.0",
+    author: "乛 SIYAM ゎ",
+    countDown: 5,
+    role: 0,
+    category: "AI",
+    shortDescription: { en: "ᴜᴘʟᴏᴀᴅ ᴍᴇᴅɪᴀ ᴛᴏ ɪᴍɢᴜʀ ᴠɪᴀ ᴀᴅᴠᴀɴᴄᴇᴅ ᴀᴘɪ" },
+    guide: { en: "『 ʀᴇᴘʟʏ ᴛᴏ ᴀɴ ɪᴍᴀɢᴇ ᴏʀ ᴠɪᴅᴇᴏ 』" }
+  },
 
-        langs: {
-                bn: {
-                        noMedia: "🐤 | বেবি, একটি ছবি বা ভিডিওতে রিপ্লাই দাও! 🖼️",
-                        success: "%1",
-                        error: "× সমস্যা হয়েছে: %1। প্রয়োজনে Contact Kakashi"
-                },
-                en: {
-                        noMedia: "🐤 | Baby, please reply to a media file (image/video)! 🖼️",
-                        success: "%1",
-                        error: "× API error: %1. Contact Kakashi for help."
-                },
-                vi: {
-                        noMedia: "🐤 | Cưng ơi, vui lòng phản hồi một tệp phương tiện! 🖼️",
-                        success: "%1",
-                        error: "× Lỗi: %1. Liên hệ Kakashi để hỗ trợ."
-                }
-        },
+  onStart: async function ({ api, event, message }) {
+    const reply = event.messageReply;
 
-        onStart: async function ({ api, event, message, getLang }) {
-                const authorName = String.fromCharCode(77, 97, 104, 77, 85, 68);
-                if (this.config.author !== authorName) {
-                        return api.sendMessage("You are not authorized to change the author name.", event.threadID, event.messageID);
-                }
+    if (!reply || !reply.attachments || reply.attachments.length === 0) {
+      return message.reply("✧ ᴘʟᴇᴀsᴇ ʀᴇᴘʟʏ ᴛᴏ ᴍᴇᴅɪᴀ Ი");
+    }
 
-                if (event.type !== "message_reply" || !event.messageReply.attachments.length) {
-                        return message.reply(getLang("noMedia"));
-                }
+    message.reaction("🐋", event.messageID);
 
-                try {
-                        api.setMessageReaction("⌛", event.messageID, () => {}, true);
-
-                        const attachmentUrl = encodeURIComponent(event.messageReply.attachments[0].url);
-                        const baseUrl = await getBase();
-                        const apiUrl = `${baseUrl.replace(/\/$/, "")}/api/imgur?url=${attachmentUrl}`;
-
-                        const response = await axios.get(apiUrl, { timeout: 100000 });
-
-                        if (response.data.status && response.data.link) {
-                                return message.reply({
-                                        body: getLang("success", response.data.link)
-                                }, () => {
-                                        api.setMessageReaction("✅", event.messageID, () => {}, true);
-                                });
-                        } else {
-                                throw new Error("Imgur API response status false.");
-                        }
-
-                } catch (err) {
-                        console.error("Imgur Error:", err);
-                        api.setMessageReaction("❌", event.messageID, () => {}, true);
-                        return message.reply(getLang("error", err.message));
-                }
+    try {
+      // API Endpoint
+      const apiEndpoint = "https://maybexenos.vercel.app/uploader/imgur";
+      
+      let resultMsg = "";
+      
+      const uploadPromises = reply.attachments.map(async (attachment, index) => {
+        try {
+          const res = await axios.get(`${apiEndpoint}?link=${encodeURIComponent(attachment.url)}`);
+          
+          const link = res.data.uploaded.image; 
+          
+          if (link) {
+            return `ʟɪɴᴋ ${index + 1}: ${link}`;
+          } else {
+            return `ʟɪɴᴋ ${index + 1}: ᴜᴘʟᴏᴀᴅ ғᴀɪʟᴇᴅ`;
+          }
+        } catch (e) {
+          return `ʟɪɴᴋ ${index + 1}: ᴄᴏɴɴᴇᴄᴛɪᴏɴ ᴇʀʀᴏʀ`;
         }
+      });
+
+      const results = await Promise.all(uploadPromises);
+      resultMsg += results.join("\n");
+      resultMsg += "";
+
+      message.reaction("🪶", event.messageID);
+      return message.reply(resultMsg);
+
+    } catch (err) {
+      message.reaction("🥲", event.messageID);
+      return message.reply("✧ sᴇʀᴠᴇʀ ᴅᴏᴡɴ ᴏʀ ɪɴᴠᴀʟɪᴅ ᴀᴘɪ ");
+    }
+  }
 };
