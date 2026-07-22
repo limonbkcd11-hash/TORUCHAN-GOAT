@@ -12,7 +12,7 @@ module.exports = {
 		role: 0,
 		shortDescription: "AI Image Upscaler",
 		longDescription: "Upscale image to 4K using AI API",
-		category: "tools",
+		category: "AI",
 		guide: "{pn} reply to an image"
 	},
 
