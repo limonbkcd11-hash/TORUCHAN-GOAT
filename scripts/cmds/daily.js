@@ -13,7 +13,7 @@ module.exports = {
         name: "daily",
         aliases: ["reward"],
         version: "1.0",
-        author: "SYSTEM x Hridoy",
+        author: "Hridoy",
         role: 0,
         countDown: 5,
         category: "Game",
@@ -81,7 +81,7 @@ module.exports = {
 
             const replyText =
 `╔══════════════╗
-        🎁 DAILY REWARD 🎁
+ 🎁 DAILY REWARD 🎁
 ╚══════════════╝
 
 💰 Reward Received: ${reward}
